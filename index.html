@@ -1,775 +1,512 @@
-load both sales file and the bc master items file
+I've updated the categorization logic for Ruiru's Deli/Bakery section to match Syokimau's approach, using the same product-based detection while respecting Ruiru's service point filtering.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Syokimau Sales </title>
+    <title>Syokimau vs Ruiru | Sales Intelligence + Manual Amounts Only</title>
     <!-- Bootstrap 5 + Icons + Custom Font -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <!-- SheetJS (XLSX) -->
+    <!-- SheetJS -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        * {
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-        }
-        body {
-            background: #eef2f5;
-            padding-bottom: 2rem;
-            overflow-x: auto;
-        }
-        .gradient-header {
-            background: linear-gradient(135deg, #0B2B40 0%, #1A4A5F 100%);
-            color: white;
-            border-radius: 0 0 2rem 2rem;
-            padding: 1.5rem 1rem;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
-        }
-        .card-glass {
-            background: rgba(255,255,255,0.96);
-            border: none;
-            border-radius: 1.5rem;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-        }
-        .upload-zone {
-            border: 2px dashed #cbd5e1;
-            border-radius: 1.5rem;
-            background: #fefefe;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .upload-zone:hover {
-            background-color: #f1f5f9;
-            border-color: #1A4A5F;
-        }
-        /* KPI modern cards */
-        .kpi-card-modern {
-            background: white;
-            border-radius: 1.5rem;
-            padding: 1rem 1rem;
-            transition: all 0.2s ease;
-            border-bottom: 4px solid;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        .kpi-card-modern:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 16px 28px rgba(0,0,0,0.08);
-        }
-        .kpi-title {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-            color: #4b5563;
-        }
-        .kpi-value {
-            font-size: 1.9rem;
-            font-weight: 800;
-            color: #0f172a;
-            line-height: 1.2;
-            margin: 0.4rem 0 0.2rem;
-        }
-        .global-kpi-card {
-            background: linear-gradient(145deg, #ffffff, #fefefe);
-            border-radius: 1.8rem;
-            padding: 1rem 0.8rem;
-            text-align: center;
-            box-shadow: 0 12px 24px rgba(0,0,0,0.05);
-            border-bottom: 4px solid #1A4A5F;
-            transition: all 0.2s;
-            height: 100%;
-        }
-        .global-kpi-card:hover {
-            transform: translateY(-3px);
-        }
-        .global-kpi-number {
-            font-size: 2.3rem;
-            font-weight: 800;
-            color: #0B2B40;
-            letter-spacing: -0.5px;
-        }
-        .global-kpi-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #2c3e50;
-            letter-spacing: 0.3px;
-        }
-        .section-progress {
-            height: 6px;
-            border-radius: 6px;
-            background-color: #e9ecef;
-            margin: 10px 0 6px;
-            overflow: hidden;
-        }
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #4b5563;
-        }
-        .badge-section {
-            background: #eef2ff;
-            color: #1e3a8a;
-            font-weight: 600;
-        }
-        .btn-custom-primary {
-            background: #1A4A5F;
-            border: none;
-            border-radius: 2rem;
-            padding: 0.6rem 1.5rem;
-            font-weight: 500;
-        }
-        .btn-custom-primary:hover {
-            background: #0e3a4b;
-        }
-        .date-badge {
-            background: #e9ecef;
-            border-radius: 2rem;
-            padding: 0.4rem 1rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        .manual-entry-row {
-            background: #f8fafc;
-            border-radius: 1rem;
-            padding: 1rem;
-            margin-bottom: 0.75rem;
-        }
-        .remove-manual-btn {
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .remove-manual-btn:hover {
-            color: #dc2626;
-            transform: scale(1.1);
-        }
-        .manual-summary-badge {
-            background: #e0f2fe;
-            border-radius: 2rem;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.8rem;
-        }
-        .kpi-grid-row {
-            margin-bottom: 1.5rem;
-        }
-        .container-custom {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        footer {
-            font-size: 0.75rem;
-            color: #6c757d;
-            text-align: center;
-            margin-top: 2rem;
-        }
-        .filter-badge-info {
-            background: #d1e7ff;
-            border-radius: 2rem;
-            padding: 0.3rem 1rem;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-        @media (max-width: 992px) {
-            .kpi-value { font-size: 1.5rem; }
-            .global-kpi-number { font-size: 1.8rem; }
-        }
+        * { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #eef2f5; padding-bottom: 2rem; }
+        .gradient-header { background: linear-gradient(135deg, #0B2B40 0%, #1A4A5F 100%); color: white; border-radius: 0 0 2rem 2rem; padding: 1.5rem 1rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .card-glass { background: rgba(255,255,255,0.96); border: none; border-radius: 1.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.05); transition: transform 0.2s; }
+        .upload-zone { border: 2px dashed #cbd5e1; border-radius: 1.5rem; background: #fefefe; transition: all 0.2s; cursor: pointer; }
+        .upload-zone:hover { background-color: #f1f5f9; border-color: #1A4A5F; }
+        .kpi-card-modern { background: white; border-radius: 1.5rem; padding: 1rem; transition: all 0.2s ease; border-bottom: 4px solid; box-shadow: 0 8px 20px rgba(0,0,0,0.05); height: 100%; display: flex; flex-direction: column; }
+        .kpi-card-modern:hover { transform: translateY(-3px); }
+        .kpi-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: #4b5563; }
+        .kpi-value { font-size: 1.6rem; font-weight: 800; color: #0f172a; line-height: 1.2; margin: 0.2rem 0 0.2rem; }
+        .global-kpi-card { background: linear-gradient(145deg, #ffffff, #fefefe); border-radius: 1.8rem; padding: 1rem 0.8rem; text-align: center; box-shadow: 0 12px 24px rgba(0,0,0,0.05); border-bottom: 4px solid #1A4A5F; transition: all 0.2s; height: 100%; }
+        .global-kpi-card:hover { transform: translateY(-3px); }
+        .global-kpi-number { font-size: 2rem; font-weight: 800; color: #0B2B40; }
+        .section-progress { height: 5px; border-radius: 6px; background-color: #e9ecef; margin: 8px 0 6px; overflow: hidden; }
+        .stats-row { display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: 500; color: #4b5563; }
+        .badge-section { background: #eef2ff; color: #1e3a8a; font-weight: 600; }
+        .btn-custom-primary { background: #1A4A5F; border-radius: 2rem; padding: 0.5rem 1.2rem; font-weight: 500; color: white; border: none; }
+        .btn-ruiru { background: #8B4513; border-radius: 2rem; padding: 0.5rem 1.2rem; font-weight: 500; color: white; }
+        .comparison-toggle { background: #f1f5f9; border-radius: 3rem; padding: 0.3rem; cursor: pointer; transition: 0.2s; display: inline-flex; }
+        .comparison-active { background: #1A4A5F; color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .top-products-list { font-size: 0.7rem; margin-top: 8px; border-top: 1px solid #e9ecef; padding-top: 6px; }
+        .top-product-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .product-name-trunc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; font-weight: 500; }
+        .product-amt { font-weight: 600; color: #0f172a; }
+        .manual-card { background: #fef9e6; border-left: 6px solid #f4b942; }
+        .manual-input-group { background: white; border-radius: 1rem; padding: 0.8rem; margin-bottom: 1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .remove-manual { cursor: pointer; opacity: 0.6; transition: 0.2s; }
+        .remove-manual:hover { opacity: 1; color: red; }
+        .manual-amount-card { background: #fff7e6; border-radius: 1rem; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #f4b942; }
+        @media (max-width: 768px) { .kpi-value { font-size: 1.3rem; } .product-name-trunc { max-width: 80px; } }
     </style>
 </head>
 <body>
 
 <div class="gradient-header mb-4">
-    <div class="container container-custom">
+    <div class="container">
         <div class="d-flex align-items-center justify-content-between flex-wrap">
-            <div>
-                <h1 class="display-6 fw-bold"><i class="bi bi-shop"></i> Syokimau Sales Categorizer</h1>
-                <p class="mb-0 opacity-75">Wholesale · Pharmacy · Liquor · Deli/Bakery · Retail | <strong>Filtered by Syokimau Retail, Syokimau Deli, Syokimau Pharmacy</strong></p>
-            </div>
-            <div class="mt-2 mt-sm-0">
-                <i class="bi bi-file-earmark-excel fs-1"></i>
-            </div>
+            <div><h1 class="display-6 fw-bold"><i class="bi bi-graph-up"></i> Syokimau vs Ruiru</h1><p class="mb-0 opacity-75">Intelligent Categorizer · Manual Amounts Only · Unified Deli Logic</p></div>
+            <div><i class="bi bi-pencil-square fs-1"></i></div>
         </div>
     </div>
 </div>
 
-<div class="container container-custom">
-    <!-- Dual file upload row -->
+<div class="container">
+    <!-- File upload row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6"><div class="card card-glass h-100 p-3"><div class="card-body"><h5 class="fw-bold"><i class="bi bi-receipt"></i> Sales File (Excel)</h5><div class="upload-zone p-3 text-center" id="salesUploadZone"><i class="bi bi-cloud-upload fs-1"></i><p class="mb-0">Click or drag .xlsx</p><input type="file" id="salesFileInput" class="d-none" /><div id="salesFileName" class="small text-success mt-1"></div></div></div></div></div>
+        <div class="col-md-6"><div class="card card-glass h-100 p-3"><div class="card-body"><h5 class="fw-bold"><i class="bi bi-database"></i> BC Master File</h5><div class="upload-zone p-3 text-center" id="bcUploadZone"><i class="bi bi-file-spreadsheet fs-1"></i><p class="mb-0">Upload BC (Description + Inventory Posting Group1)</p><input type="file" id="bcFileInput" class="d-none" /><div id="bcFileName" class="small text-success mt-1"></div></div></div></div></div>
+    </div>
+
+    <!-- MANUAL INVOICES SECTION: AMOUNTS ONLY -->
     <div class="row g-4 mb-4">
         <div class="col-md-6">
-            <div class="card card-glass h-100 p-3">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold"><i class="bi bi-receipt"></i> 1. Sales File (Excel)</h5>
-                    <p class="text-muted small">Columns: sale_id, product, customer_name, <span class="fw-bold">service_point</span>, station, invoice_no, qty, user, status, price, amount, date, category, parent_category, tax_category, payment_mode, unit_cost</p>
-                    <div class="upload-zone p-4 text-center" id="salesUploadZone">
-                        <i class="bi bi-cloud-upload fs-1 text-secondary"></i>
-                        <p class="mt-2 mb-0">Click or drag .xlsx, .xls</p>
-                        <input type="file" id="salesFileInput" accept=".xlsx, .xls, .csv" class="d-none" />
-                        <div id="salesFileName" class="small text-success mt-2"></div>
-                    </div>
+            <div class="card card-glass p-3 manual-card">
+                <h5 class="fw-bold"><i class="bi bi-pencil-square"></i> ✍️ Manual Invoices – Syokimau (Amount Only)</h5>
+                <p class="small text-muted">Add sales amount (KES) without product details. Categorized under <strong>RETAIL</strong> section automatically.</p>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">KES</span>
+                    <input type="number" id="syoManualAmount" class="form-control" placeholder="Enter amount (e.g., 2500)" step="any" value="">
+                    <button class="btn btn-custom-primary" id="addSyoManualBtn"><i class="bi bi-plus-circle"></i> Add Amount</button>
+                </div>
+                <div id="syoManualList" class="mt-2 small">
+                    <div class="text-muted fst-italic">No manual entries yet. Add amounts above.</div>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card card-glass h-100 p-3">
-                <div class="card-body">
-                    <h5 class="card-title fw-bold"><i class="bi bi-database"></i> 2. BC Master File (Excel)</h5>
-                    <p class="text-muted small">Required: Description, Inventory Posting Group1 (for WINES & SPIRITS mapping). Used for advanced product categorization.</p>
-                    <div class="upload-zone p-4 text-center" id="bcUploadZone">
-                        <i class="bi bi-file-spreadsheet fs-1 text-secondary"></i>
-                        <p class="mt-2 mb-0">Upload BC file (matching columns)</p>
-                        <input type="file" id="bcFileInput" accept=".xlsx, .xls" class="d-none" />
-                        <div id="bcFileName" class="small text-success mt-2"></div>
-                    </div>
+            <div class="card card-glass p-3 manual-card">
+                <h5 class="fw-bold"><i class="bi bi-pencil-square"></i> ✍️ Manual Invoices – Ruiru (Amount Only)</h5>
+                <p class="small text-muted">Add sales amount (KES) without product details. Categorized under <strong>WHOLESALE & RETAIL</strong> section automatically.</p>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">KES</span>
+                    <input type="number" id="ruiruManualAmount" class="form-control" placeholder="Enter amount (e.g., 3750)" step="any" value="">
+                    <button class="btn btn-ruiru" id="addRuiruManualBtn"><i class="bi bi-plus-circle"></i> Add Amount</button>
+                </div>
+                <div id="ruiruManualList" class="mt-2 small">
+                    <div class="text-muted fst-italic">No manual entries yet. Add amounts above.</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Manual Sales Entry Section -->
-    <div class="card card-glass mb-4">
-        <div class="card-header bg-transparent border-0 pt-3 fw-bold">
-            <i class="bi bi-pencil-square"></i> Manual Sales (Adds to RETAIL only, respects Syokimau filter context)
-            <span class="manual-summary-badge ms-2" id="manualCountBadge">0 entries</span>
+    <!-- Comparison Mode Toggle + Action Buttons -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div class="d-flex gap-2">
+            <button class="btn btn-custom-primary" id="processBothBtn"><i class="bi bi-arrow-left-right"></i> Analyze Both & Compare</button>
+            <button class="btn btn-outline-secondary" id="resetDataBtn"><i class="bi bi-arrow-repeat"></i> Reset All (Clear Files & Manual)</button>
         </div>
-        <div class="card-body">
-            <p class="text-muted small mb-3">Add extra invoices (e.g., manual sales for Syokimau retail). Each entry contributes amount to <strong>RETAIL</strong> category.</p>
-            <div id="manualEntriesContainer"></div>
-            <button class="btn btn-outline-primary btn-sm mt-2" id="addManualEntryBtn">
-                <i class="bi bi-plus-circle"></i> Add Manual Invoice
-            </button>
-            <div class="alert alert-secondary mt-3 small">
-                <i class="bi bi-info-circle"></i> <strong>Logic:</strong> Only sales from service_point = "Syokimau Retail", "Syokimau Deli", or "Syokimau Pharmacy" are processed. Manual invoices are automatically assigned to RETAIL.
-            </div>
+        <div class="comparison-toggle d-flex" id="comparisonToggleBtn">
+            <div class="px-3 py-1 rounded-pill comparison-mode-off" data-mode="off" style="border-radius: 2rem;">📊 Standard View</div>
+            <div class="px-3 py-1 rounded-pill comparison-mode-on" data-mode="on" style="border-radius: 2rem;">🔄 Comparison: Syokimau vs Ruiru</div>
         </div>
     </div>
 
-    <!-- Action row -->
-    <div class="d-flex justify-content-center mb-4">
-        <button class="btn btn-custom-primary btn-lg px-5 shadow-sm" id="processBtn" disabled>
-            <i class="bi bi-funnel-fill"></i> Process Syokimau Sales
-        </button>
-        <button class="btn btn-outline-secondary ms-3 px-4" id="resetBtn"><i class="bi bi-arrow-repeat"></i> Reset All</button>
-    </div>
-
-    <!-- GLOBAL KPI SECTION: 3 CARDS ROW (Total Sales, Customers, Basket) -->
-    <div id="globalKPIsContainer" style="display: none;" class="mb-4">
+    <!-- DYNAMIC DASHBOARD -->
+    <div id="standardView">
         <div class="row g-4">
-            <div class="col-md-4">
-                <div class="global-kpi-card">
-                    <div class="global-kpi-number" id="totalSalesGlobal">KES 0</div>
-                    <div class="global-kpi-label"><i class="bi bi-cash-stack"></i> Total Sales (Filtered)</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="global-kpi-card">
-                    <div class="global-kpi-number" id="totalCustomersGlobal">0</div>
-                    <div class="global-kpi-label"><i class="bi bi-people-fill"></i> Unique Customers</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="global-kpi-card">
-                    <div class="global-kpi-number" id="basketValueGlobal">KES 0</div>
-                    <div class="global-kpi-label"><i class="bi bi-bag-heart"></i> Avg. Basket Value</div>
-                </div>
-            </div>
+            <div class="col-lg-6"><div id="syokimauContainer"></div></div>
+            <div class="col-lg-6"><div id="ruiruContainer"></div></div>
         </div>
+    </div>
+    <div id="comparisonView" style="display: none;">
+        <div class="card card-glass p-3 mb-3"><h4 class="fw-bold text-center"><i class="bi bi-arrow-left-right"></i> Side-by-Side Comparison: Syokimau (Left) vs Ruiru (Right)</h4></div>
+        <div class="row g-4" id="comparisonGrid"></div>
     </div>
 
-    <!-- SECTION KPI DASHBOARD (5 categories: 3 on top row, 2 on second row) -->
-    <div id="kpiDashboard" style="display: none;">
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-            <h4 class="fw-bold mb-2"><i class="bi bi-bar-chart-steps"></i> Syokimau Sections Performance</h4>
-            <div class="d-flex gap-2">
-                <div class="filter-badge-info"><i class="bi bi-geo-alt-fill"></i> Filter: Syokimau Retail · Syokimau Deli · Syokimau Pharmacy</div>
-                <div id="analysisDateDisplay" class="date-badge">
-                    <i class="bi bi-calendar-check"></i> Analysis: <span id="analysisDateValue">—</span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Row for first 3 section cards (Wholesale, Pharmacy, Liquor) -->
-        <div class="row g-4 mb-4" id="sectionRow1"></div>
-        
-        <!-- Row for remaining 2 section cards (Deli/Bakery, Retail) -->
-        <div class="row g-4 mb-4" id="sectionRow2"></div>
-        
-        <!-- Detailed table -->
-        <div class="card card-glass mt-3">
-            <div class="card-header bg-transparent border-0 pt-3 fw-bold"><i class="bi bi-table"></i> Detailed Sales Breakdown by Section (Filtered)</div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle" id="summaryTable">
-                        <thead class="table-light">
-                            <tr><th>Section</th><th>Total Sales (KSh)</th><th>Unique Customers</th><th>% of Total Sales</th><th># Transactions</th></tr>
-                        </thead>
-                        <tbody id="summaryBody"></tbody>
-                    </table>
-                </div>
-                <div class="alert alert-info mt-3 small">
-                    <i class="bi bi-check-circle-fill"></i> <strong>Syokimau-only filter:</strong> Only rows where service_point = "Syokimau Retail", "Syokimau Deli", or "Syokimau Pharmacy" are processed. Manual entries always count toward RETAIL.
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <footer>
-        <hr class="my-3">📊 Dashboard respects Syokimau service points only. Layout: 3 global KPIs → 5 section cards (3+2). Manual adds to Retail.
-    </footer>
+    <footer class="mt-4 text-center small text-muted"><hr>✅ Deli/Bakery logic unified: product keywords (deli, bakery, cake, xana) trigger Deli section for both locations while respecting service point filters. Manual amounts only require amount input.</footer>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // ---------- GLOBAL STATE ----------
-    let salesData = [];        
-    let bcData = [];           
-    let salesFileLoaded = false;
-    let bcFileLoaded = false;
-    let extractedAnalysisDate = null;
-    let manualEntries = [];
+    // ---------- GLOBAL ----------
+    let salesData = [], bcData = [], salesLoaded = false, bcLoaded = false;
+    let syokimauProcessed = null, ruiruProcessed = null;
+    let currentMode = "off";
     
-    // Filter condition based on requirement: only service_point = "Syokimau Retail", "Syokimau Deli", "Syokimau Pharmacy"
-    const ALLOWED_SERVICE_POINTS = new Set(["Syokimau Retail", "Syokimau Deli", "Syokimau Pharmacy"]);
+    // Manual entries storage - amount only
+    let syokimauManualAmounts = [];
+    let ruiruManualAmounts = [];
     
-    // Helper: case-insensitive normalize service_point
-    function normalizeServicePoint(value) {
-        if (!value || typeof value !== 'string') return "";
-        const trimmed = value.trim();
-        // Known variations: handle exact matches
-        if (trimmed === "Syokimau Retail") return "Syokimau Retail";
-        if (trimmed === "Syokimau Deli") return "Syokimau Deli";
-        if (trimmed === "Syokimau Pharmacy") return "Syokimau Pharmacy";
-        // also tolerant to lower/extra spaces
-        if (trimmed.toLowerCase() === "syokimau retail") return "Syokimau Retail";
-        if (trimmed.toLowerCase() === "syokimau deli") return "Syokimau Deli";
-        if (trimmed.toLowerCase() === "syokimau pharmacy") return "Syokimau Pharmacy";
-        return "";
+    // BC Map Builder
+    function buildBCMap() { 
+        const map = new Map(); 
+        for(const row of bcData) { 
+            let desc = row['Description'] ? String(row['Description']).trim() : ""; 
+            let inv = row['Inventory Posting Group1'] ? String(row['Inventory Posting Group1']).trim() : ""; 
+            if(desc) map.set(desc.toLowerCase(), inv); 
+        } 
+        return map; 
     }
     
-    // DOM elements
-    const salesUploadZone = document.getElementById('salesUploadZone');
-    const salesFileInput = document.getElementById('salesFileInput');
-    const bcUploadZone = document.getElementById('bcUploadZone');
-    const bcFileInput = document.getElementById('bcFileInput');
-    const salesFileNameSpan = document.getElementById('salesFileName');
-    const bcFileNameSpan = document.getElementById('bcFileName');
-    const processBtn = document.getElementById('processBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const kpiDashboard = document.getElementById('kpiDashboard');
-    const globalKPIsContainer = document.getElementById('globalKPIsContainer');
-    const sectionRow1 = document.getElementById('sectionRow1');
-    const sectionRow2 = document.getElementById('sectionRow2');
-    const summaryBody = document.getElementById('summaryBody');
-    const analysisDateValueSpan = document.getElementById('analysisDateValue');
-    const manualEntriesContainer = document.getElementById('manualEntriesContainer');
-    const manualCountBadge = document.getElementById('manualCountBadge');
-    const addManualEntryBtn = document.getElementById('addManualEntryBtn');
-    const totalSalesGlobalSpan = document.getElementById('totalSalesGlobal');
-    const totalCustomersGlobalSpan = document.getElementById('totalCustomersGlobal');
-    const basketValueGlobalSpan = document.getElementById('basketValueGlobal');
-
-    // ---------- Excel helpers ----------
-    function parseExcelFile(file, callback) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
-            callback(rows);
-        };
-        reader.onerror = () => { alert("Error reading file"); callback(null); };
-        reader.readAsArrayBuffer(file);
+    // Service point filters
+    function isSyokimau(sp) { 
+        const s = (sp || "").trim(); 
+        return s === "Syokimau Retail" || s === "Syokimau Deli" || s === "Syokimau Pharmacy"; 
     }
-
-    function updateProcessButton() {
-        processBtn.disabled = !(salesFileLoaded && bcFileLoaded);
-        if (!processBtn.disabled) {
-            processBtn.classList.remove('btn-secondary');
-            processBtn.classList.add('btn-custom-primary');
-        } else {
-            processBtn.classList.remove('btn-custom-primary');
-            processBtn.classList.add('btn-secondary');
-        }
+    function isRuiru(sp) { 
+        return (sp || "").toLowerCase().includes("ruiru"); 
     }
-
-    // ---------- MANUAL ENTRIES ----------
-    function renderManualEntries() {
-        if (!manualEntriesContainer) return;
-        if (manualEntries.length === 0) {
-            manualEntriesContainer.innerHTML = '<div class="text-muted text-center py-3"><i class="bi bi-inbox"></i> No manual entries added. Click "Add Manual Invoice".</div>';
-            manualCountBadge.textContent = '0 entries';
-            return;
-        }
-        let html = '';
-        manualEntries.forEach((entry, idx) => {
-            html += `
-                <div class="manual-entry-row d-flex align-items-center gap-3 flex-wrap" data-idx="${idx}">
-                    <div class="flex-grow-1">
-                        <label class="small text-muted mb-1">Invoice Number</label>
-                        <input type="text" class="form-control form-control-sm manual-invoice" value="${escapeHtml(entry.invoiceNo)}" placeholder="INV-001" style="max-width: 200px;">
-                    </div>
-                    <div class="flex-grow-1">
-                        <label class="small text-muted mb-1">Amount (KES)</label>
-                        <input type="number" class="form-control form-control-sm manual-amount" value="${entry.amount}" placeholder="0.00" step="0.01" style="max-width: 180px;">
-                    </div>
-                    <div class="mt-3 mt-sm-0">
-                        <i class="bi bi-trash3 fs-5 text-danger remove-manual-btn" data-idx="${idx}" title="Remove"></i>
-                    </div>
-                </div>
-            `;
-        });
-        manualEntriesContainer.innerHTML = html;
-        manualCountBadge.textContent = `${manualEntries.length} entry${manualEntries.length !== 1 ? 's' : ''}`;
-        
-        document.querySelectorAll('.manual-entry-row').forEach(row => {
-            const idx = parseInt(row.dataset.idx);
-            const invoiceInput = row.querySelector('.manual-invoice');
-            const amountInput = row.querySelector('.manual-amount');
-            const removeBtn = row.querySelector('.remove-manual-btn');
-            if (invoiceInput) {
-                invoiceInput.addEventListener('change', (e) => {
-                    manualEntries[idx].invoiceNo = e.target.value.trim() || `MANUAL_${idx+1}`;
-                    renderManualEntries();
-                });
-            }
-            if (amountInput) {
-                amountInput.addEventListener('change', (e) => {
-                    let val = parseFloat(e.target.value);
-                    manualEntries[idx].amount = isNaN(val) ? 0 : val;
-                    renderManualEntries();
-                });
-            }
-            if (removeBtn) {
-                removeBtn.addEventListener('click', () => {
-                    manualEntries.splice(idx, 1);
-                    renderManualEntries();
-                });
-            }
+    
+    // Convert manual amounts to row format
+    function convertManualAmountsToRows(location, amountList) {
+        if(!amountList.length) return [];
+        return amountList.map((amount, idx) => {
+            let uniqueId = `MANUAL_${location}_${Date.now()}_${idx}_${Math.random().toString(36).substr(2, 4)}`;
+            let productName = `Manual Invoice ${idx+1}`;
+            return {
+                'product': productName,
+                'Product': productName,
+                'amount': parseFloat(amount) || 0,
+                'Amount': parseFloat(amount) || 0,
+                'invoice_no': uniqueId,
+                'Invoice_No': uniqueId,
+                'service_point': location === 'syokimau' ? "Syokimau Retail" : "Ruiru Manual",
+                'service point': location === 'syokimau' ? "Syokimau Retail" : "Ruiru Manual",
+                'is_manual_entry': true,
+                'manual_amount_only': true
+            };
         });
     }
     
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-    
-    function addManualEntry() {
-        const newInvoiceNo = `MANUAL_${Date.now().toString().slice(-6)}`;
-        manualEntries.push({ invoiceNo: newInvoiceNo, amount: 0 });
-        renderManualEntries();
-    }
-    
-    // FILTER: keep only sales that belong to Syokimau Retail/Deli/Pharmacy (case-insensitive exact)
-    function filterSalesByServicePoint(salesArray) {
-        return salesArray.filter(row => {
-            let servicePointRaw = row['service_point'] || row['service point'] || row['Service_Point'] || "";
-            const normalized = normalizeServicePoint(servicePointRaw);
-            return ALLOWED_SERVICE_POINTS.has(normalized);
-        });
-    }
-    
-    // Merge manual entries and apply Syokimau context (manual entries always included as retail)
-    function getFilteredSalesRowsWithManual() {
-        let baseSales = salesData || [];
-        const filteredOriginal = filterSalesByServicePoint(baseSales);
-        const manualRows = [];
-        for (const entry of manualEntries) {
-            if (!entry.invoiceNo.trim()) continue;
-            manualRows.push({
-                sale_id: `manual_${Date.now()}_${Math.random()}`,
-                product: "MANUAL ENTRY",
-                customer_name: "Manual Customer",
-                service_point: "Syokimau Retail",   // assign to comply with filter requirement
-                station: "Manual",
-                invoice_no: entry.invoiceNo.trim(),
-                qty: 1,
-                user: "system",
-                status: "completed",
-                price: entry.amount,
-                amount: entry.amount,
-                date: new Date().toISOString(),
-                category: "Manual",
-                parent_category: "Retail",
-                tax_category: "Standard",
-                payment_mode: "Manual",
-                unit_cost: entry.amount,
-                is_manual_entry: true
-            });
+    // Helper function to detect Deli/Bakery products (unified logic for both locations)
+    function isDeliBakeryProduct(productName, servicePoint) {
+        const prod = productName.toLowerCase();
+        const sp = servicePoint.toLowerCase();
+        // Product-based detection (same as Syokimau logic)
+        if(prod.includes("deli") || prod.includes("bakery") || prod.includes("cake") || 
+           (prod.includes("xana") && !prod.includes("water"))) {
+            return true;
         }
-        return [...filteredOriginal, ...manualRows];
+        // Service point based detection for Ruiru (if service point contains deli)
+        if(sp.includes("deli")) return true;
+        return false;
     }
     
-    function extractAnalysisDateFromSales(salesRows) {
-        if (!salesRows || salesRows.length === 0) return "Date not available";
-        let dateColumnKey = null;
-        for (let key in salesRows[0]) {
-            if (key.toLowerCase() === 'date') { dateColumnKey = key; break; }
-        }
-        if (!dateColumnKey) return "Date column missing";
-        const parsedDates = [];
-        for (const row of salesRows) {
-            const dateValue = row[dateColumnKey];
-            if (dateValue && typeof dateValue === 'string' && dateValue.trim() !== "") {
-                const parsed = parseSaleDate(dateValue);
-                if (parsed) parsedDates.push(parsed);
-            } else if (dateValue && typeof dateValue === 'number') {
-                const excelDate = convertExcelSerialToDate(dateValue);
-                if (excelDate) parsedDates.push(excelDate);
-            }
-        }
-        if (parsedDates.length === 0) return "No valid dates";
-        const frequency = {};
-        let maxFreq = 0, mostFrequentDate = null;
-        for (const dt of parsedDates) {
-            const dateKey = dt.toDateString();
-            frequency[dateKey] = (frequency[dateKey] || 0) + 1;
-            if (frequency[dateKey] > maxFreq) {
-                maxFreq = frequency[dateKey];
-                mostFrequentDate = dt;
-            }
-        }
-        return mostFrequentDate ? formatDateNice(mostFrequentDate) : "Date parsing error";
-    }
-    
-    function parseSaleDate(dateStr) {
-        if (!dateStr) return null;
-        const str = String(dateStr).trim();
-        let d = new Date(str);
-        if (!isNaN(d.getTime()) && d.getFullYear() > 2000) return d;
-        const num = parseFloat(str);
-        if (!isNaN(num) && num > 40000 && num < 50000) return convertExcelSerialToDate(num);
-        const regex = /([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})/;
-        const match = str.match(regex);
-        if (match) {
-            const monthName = match[1];
-            const day = parseInt(match[2], 10);
-            const year = parseInt(match[3], 10);
-            const monthMap = { 'Jan':0, 'January':0, 'Feb':1, 'February':1, 'Mar':2, 'March':2, 'Apr':3, 'April':3, 'May':4, 'Jun':5, 'June':5, 'Jul':6, 'July':6, 'Aug':7, 'August':7, 'Sep':8, 'September':8, 'Oct':9, 'October':9, 'Nov':10, 'November':10, 'Dec':11, 'December':11 };
-            let month = monthMap[monthName];
-            if (month !== undefined && day && year) return new Date(year, month, day);
-        }
-        return null;
-    }
-    
-    function convertExcelSerialToDate(serial) {
-        const excelEpoch = new Date(1899, 11, 30);
-        const days = Math.floor(serial);
-        const date = new Date(excelEpoch.getTime() + days * 86400000);
-        if (!isNaN(date.getTime()) && date.getFullYear() > 2000) return date;
-        return null;
-    }
-    
-    function formatDateNice(date) {
-        if (!date || isNaN(date.getTime())) return "Unknown date";
-        return date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
-    }
-    
-    function onSalesLoaded(rows) {
-        if (!rows.length) { alert("Sales file is empty"); return; }
-        salesData = rows;
-        salesFileLoaded = true;
-        updateProcessButton();
-    }
-    
-    function onBCLoaded(rows) {
-        if (!rows.length) { alert("BC file is empty"); return; }
-        bcData = rows;
-        bcFileLoaded = true;
-        updateProcessButton();
-    }
-    
-    function buildBCLookupMap() {
-        const map = new Map();
-        for (const row of bcData) {
-            let desc = row['Description'] ? String(row['Description']).trim() : "";
-            let invGroup = row['Inventory Posting Group1'] ? String(row['Inventory Posting Group1']).trim() : "";
-            if (desc) map.set(desc.toLowerCase(), invGroup);
-        }
-        return map;
-    }
-    
-    function categorizeSales(salesRowsMerged) {
-        if (!salesRowsMerged.length) return [];
-        const bcLookup = bcData.length ? buildBCLookupMap() : new Map();
-        return salesRowsMerged.map((row, idx) => {
-            const productDesc = (row['product'] || row['Product'] || "").toString().toLowerCase().trim();
-            const amountRaw = parseFloat(row['amount'] || row['Amount'] || 0);
-            const amount = isNaN(amountRaw) ? 0 : amountRaw;
-            const servicePointRaw = (row['service_point'] || row['service point'] || row['Service_Point'] || "").toString().trim();
-            const invoiceNo = (row['invoice_no'] || row['Invoice_No'] || row['invoice number'] || "").toString().trim() || `inv_${idx}`;
-            const isManual = row.is_manual_entry === true;
+    // Categorization for Syokimau (with unified Deli logic)
+    function categorizeSyokimau(rows, bcMap) {
+        return rows.map(row => {
+            let prod = (row['product'] || row['Product'] || "").toString().toLowerCase();
+            let amt = parseFloat(row['amount'] || row['Amount'] || 0) || 0;
+            let spRaw = (row['service_point'] || row['service point'] || "").toString().toLowerCase();
+            let invNo = (row['invoice_no'] || row['Invoice_No'] || "").toString().trim() || `inv_${Math.random()}`;
+            let isManual = row.is_manual_entry === true;
+            let productNameRaw = row['product'] || row['Product'] || "Generic";
             
             let section = "RETAIL";
-            if (isManual) section = "RETAIL";
-            else if (productDesc.includes("box") || productDesc.includes("outer") || productDesc.includes("bale")) section = "WHOLESALE";
-            else if (servicePointRaw.toLowerCase().includes("pharmacy")) section = "PHARMACY";
+            if(isManual) section = "RETAIL";
+            else if(prod.includes("box") || prod.includes("outer") || prod.includes("bale")) section = "WHOLESALE";
+            else if(spRaw.includes("pharmacy")) section = "PHARMACY";
+            else if(isDeliBakeryProduct(prod, spRaw)) section = "DELI/BAKERY";
             else {
-                let matchedBCGroup = null;
-                for (let [bcDesc, invGroup] of bcLookup.entries()) {
-                    if (productDesc === bcDesc || productDesc.includes(bcDesc) || bcDesc.includes(productDesc)) {
-                        matchedBCGroup = invGroup; break;
-                    }
-                }
-                if (matchedBCGroup && matchedBCGroup.toUpperCase() === "WINES & SPIRITS") section = "LIQUOR";
-                else if (productDesc.includes("xana") && !productDesc.includes("water")) section = "DELI/BAKERY";
-                else if (servicePointRaw.toLowerCase().includes("deli")) section = "DELI/BAKERY";
+                let matched = null;
+                for(let [desc, grp] of bcMap.entries()) if(prod.includes(desc) || desc.includes(prod)) { matched = grp; break; }
+                if(matched && matched.toUpperCase() === "WINES & SPIRITS") section = "LIQUOR";
             }
-            if (section !== "PHARMACY" && servicePointRaw.toLowerCase().includes("pharmacy")) section = "PHARMACY";
-            if (section !== "DELI/BAKERY" && servicePointRaw.toLowerCase().includes("deli")) section = "DELI/BAKERY";
-            return { ...row, amount, invoiceNo, section };
+            // Override for pharmacy if service point indicates
+            if(spRaw.includes("pharmacy")) section = "PHARMACY";
+            
+            return { ...row, amount: amt, invoiceNo: invNo, section, productName: productNameRaw, service_point: spRaw };
         });
     }
     
-    function computeKPIs(categorizedRows) {
-        const sectionsMap = new Map();
-        const sectionsList = ["WHOLESALE", "PHARMACY", "LIQUOR", "DELI/BAKERY", "RETAIL"];
-        sectionsList.forEach(sec => sectionsMap.set(sec, { totalSales: 0, uniqueInvoicesSet: new Set(), transactions: 0 }));
-        const globalUniqueInvoices = new Set();
-        let globalTotalSales = 0;
-        for (const row of categorizedRows) {
-            const sec = row.section;
-            const amount = row.amount;
-            const invoice = row.invoiceNo;
-            if (invoice && invoice !== "") globalUniqueInvoices.add(invoice);
-            globalTotalSales += amount;
-            if (sectionsMap.has(sec)) {
-                const stats = sectionsMap.get(sec);
-                stats.totalSales += amount;
-                if (invoice && invoice !== "") stats.uniqueInvoicesSet.add(invoice);
-                stats.transactions += 1;
+    // Categorization for Ruiru - unified Deli logic same as Syokimau, but with Wholesale & Retail default
+    function categorizeRuiru(rows, bcMap) {
+        return rows.map(row => {
+            let prod = (row['product'] || row['Product'] || "").toString().toLowerCase();
+            let amt = parseFloat(row['amount'] || row['Amount'] || 0) || 0;
+            let spRaw = (row['service_point'] || row['service point'] || "").toString().toLowerCase();
+            let invNo = (row['invoice_no'] || row['Invoice_No'] || "").toString().trim() || `inv_${Math.random()}`;
+            let isManual = row.is_manual_entry === true;
+            let productNameRaw = row['product'] || row['Product'] || "Generic";
+            
+            let section = "WHOLESALE & RETAIL";
+            if(isManual) section = "WHOLESALE & RETAIL";
+            else if(spRaw.includes("pharmacy")) section = "PHARMACY";
+            else if(isDeliBakeryProduct(prod, spRaw)) section = "DELI/BAKERY";
+            else {
+                let matched = null;
+                for(let [desc, grp] of bcMap.entries()) if(prod.includes(desc) || desc.includes(prod)) { matched = grp; break; }
+                if(matched && matched.toUpperCase() === "WINES & SPIRITS") section = "LIQUOR";
+                else section = "WHOLESALE & RETAIL";
             }
+            if(spRaw.includes("pharmacy")) section = "PHARMACY";
+            if(spRaw.includes("liquor")) section = "LIQUOR";
+            
+            return { ...row, amount: amt, invoiceNo: invNo, section, productName: productNameRaw, service_point: spRaw };
+        });
+    }
+    
+    // Compute KPI + TOP 3 products
+    function computeKPIsWithTopProducts(categorizedRows) {
+        const sectionsMap = new Map();
+        const globalInvoices = new Set();
+        let globalTotal = 0;
+        for(const row of categorizedRows) {
+            const sec = row.section;
+            const amt = row.amount;
+            const inv = row.invoiceNo;
+            const prodNameRaw = row.productName || "Unknown";
+            globalTotal += amt;
+            if(inv) globalInvoices.add(inv);
+            if(!sectionsMap.has(sec)) sectionsMap.set(sec, { totalSales:0, uniqueInvoices: new Set(), transactions:0, productMap: new Map() });
+            const stats = sectionsMap.get(sec);
+            stats.totalSales += amt;
+            if(inv) stats.uniqueInvoices.add(inv);
+            stats.transactions += 1;
+            const currentProdTotal = stats.productMap.get(prodNameRaw) || 0;
+            stats.productMap.set(prodNameRaw, currentProdTotal + amt);
         }
         const sectionsResult = [];
-        for (let [section, stats] of sectionsMap.entries()) {
-            const percent = globalTotalSales > 0 ? (stats.totalSales / globalTotalSales) * 100 : 0;
-            sectionsResult.push({ 
-                section, 
-                totalSales: stats.totalSales, 
-                uniqueCustomers: stats.uniqueInvoicesSet.size, 
-                percentOfTotal: percent, 
-                transactions: stats.transactions 
+        for(let [section, stats] of sectionsMap.entries()) {
+            const percent = globalTotal > 0 ? (stats.totalSales / globalTotal) * 100 : 0;
+            const topProducts = Array.from(stats.productMap.entries())
+                .map(([name, amtSum]) => ({ name, amount: amtSum }))
+                .sort((a,b) => b.amount - a.amount)
+                .slice(0,3);
+            sectionsResult.push({
+                section,
+                totalSales: stats.totalSales,
+                uniqueCustomers: stats.uniqueInvoices.size,
+                percentOfTotal: percent,
+                transactions: stats.transactions,
+                topProducts
             });
         }
-        return { sections: sectionsResult, overallTotal: globalTotalSales, totalUniqueCustomers: globalUniqueInvoices.size };
+        return { sections: sectionsResult, overallTotal: globalTotal, totalUniqueCustomers: globalInvoices.size };
     }
     
-    function formatCurrencyWhole(value) {
-        const rounded = Math.round(value);
-        return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(rounded);
+    // Filter sales by location + append manual amounts
+    function getFilteredRowsWithManual(locationType, bcMap) {
+        let baseRows = salesData || [];
+        let filtered = [];
+        if(locationType === 'syokimau') filtered = baseRows.filter(r => isSyokimau(r['service_point'] || r['service point'] || ""));
+        else filtered = baseRows.filter(r => isRuiru(r['service_point'] || r['service point'] || ""));
+        
+        let manualRows = [];
+        if(locationType === 'syokimau') manualRows = convertManualAmountsToRows('syokimau', syokimauManualAmounts);
+        else manualRows = convertManualAmountsToRows('ruiru', ruiruManualAmounts);
+        
+        return [...filtered, ...manualRows];
     }
     
-    function renderDashboard(sectionsArray, overallTotal, totalUniqueCustomers) {
-        kpiDashboard.style.display = "block";
-        globalKPIsContainer.style.display = "block";
-        analysisDateValueSpan.textContent = extractedAnalysisDate || "Not available";
+    // Process location fully
+    function processLocation(location) {
+        if(!bcLoaded) return null;
+        const bcMap = buildBCMap();
+        const rows = getFilteredRowsWithManual(location, bcMap);
+        if(rows.length === 0) return { sections: [], overallTotal: 0, totalUniqueCustomers: 0, rawCategorized: [] };
+        let categorized;
+        if(location === 'syokimau') categorized = categorizeSyokimau(rows, bcMap);
+        else categorized = categorizeRuiru(rows, bcMap);
+        const { sections, overallTotal, totalUniqueCustomers } = computeKPIsWithTopProducts(categorized);
+        return { sections, overallTotal, totalUniqueCustomers, rawCategorized: categorized };
+    }
+    
+    // Render KPI cards
+    function renderLocationDashboard(containerId, locationName, result) {
+        const container = document.getElementById(containerId);
+        if(!container) return;
+        if(!result || result.sections.length === 0) { 
+            container.innerHTML = `<div class="alert alert-warning">No ${locationName} sales data found. Add manual amounts or upload file.</div>`; 
+            return; 
+        }
+        const { sections, overallTotal, totalUniqueCustomers } = result;
+        const colorMap = { "WHOLESALE":"#2c5f2d","PHARMACY":"#1e88e5","LIQUOR":"#b23c1c","DELI/BAKERY":"#e67e22","RETAIL":"#6c757d","WHOLESALE & RETAIL":"#2c5f2d" };
+        const ordered = locationName === "Syokimau" ? ["WHOLESALE","PHARMACY","LIQUOR","DELI/BAKERY","RETAIL"] : ["PHARMACY","LIQUOR","DELI/BAKERY","WHOLESALE & RETAIL"];
+        const sectionMap = new Map(sections.map(s => [s.section, s]));
         
-        totalSalesGlobalSpan.textContent = formatCurrencyWhole(overallTotal);
-        totalCustomersGlobalSpan.textContent = totalUniqueCustomers;
-        const avgBasket = totalUniqueCustomers > 0 ? overallTotal / totalUniqueCustomers : 0;
-        basketValueGlobalSpan.textContent = formatCurrencyWhole(avgBasket);
-        
-        const colorMap = { "WHOLESALE": "#2c5f2d", "PHARMACY": "#1e88e5", "LIQUOR": "#b23c1c", "DELI/BAKERY": "#e67e22", "RETAIL": "#6c757d" };
-        const orderedSections = ["WHOLESALE", "PHARMACY", "LIQUOR", "DELI/BAKERY", "RETAIL"];
-        const sectionMap = new Map();
-        sectionsArray.forEach(sec => sectionMap.set(sec.section, sec));
-        const firstThree = orderedSections.slice(0, 3);
-        const lastTwo = orderedSections.slice(3, 5);
-        
-        function renderCard(secName) {
+        let html = `<div class="card card-glass p-3 mb-3"><div class="d-flex justify-content-between flex-wrap"><h3><i class="bi bi-geo-alt-fill"></i> ${locationName}</h3><div class="global-kpi-card" style="width:auto; padding:0.5rem 1rem;"><span class="global-kpi-number" style="font-size:1.4rem;">${formatCurrency(overallTotal)}</span><span class="global-kpi-label ms-2">Total Sales</span><br><span class="small">👥 ${totalUniqueCustomers} unique invoices</span></div></div></div>`;
+        html += `<div class="row g-3">`;
+        for(let secName of ordered) {
             const sec = sectionMap.get(secName);
-            if (!sec) return `<div class="col-md-4"><div class="kpi-card-modern"><div class="kpi-title">${secName}</div><div class="kpi-value">KES 0</div><div class="text-muted small">No data</div></div></div>`;
-            const borderColor = colorMap[sec.section] || "#0f172a";
-            const totalSalesRounded = formatCurrencyWhole(sec.totalSales);
+            if(!sec) { 
+                html += `<div class="col-md-6 col-lg-4"><div class="kpi-card-modern" style="border-bottom-color:#ccc;"><div class="kpi-title">${secName}</div><div class="kpi-value">KES 0</div><div class="stats-row">No data</div></div></div>`; 
+                continue; 
+            }
+            const borderCol = colorMap[secName] || "#6c757d";
             const percentVal = sec.percentOfTotal;
-            return `
-                <div class="col-md-4">
-                    <div class="kpi-card-modern" style="border-bottom-color: ${borderColor};">
-                        <div class="kpi-title">${sec.section}</div>
-                        <div class="kpi-value">${totalSalesRounded}</div>
-                        <div class="stats-row"><span><i class="bi bi-people"></i> ${sec.uniqueCustomers} customers</span><span><i class="bi bi-percent"></i> ${percentVal.toFixed(1)}%</span></div>
-                        <div class="section-progress"><div class="progress-bar-custom" style="width: ${Math.min(percentVal,100)}%; background-color: ${borderColor}; height: 6px;"></div></div>
-                        <div class="stats-row mt-1"><span><i class="bi bi-receipt"></i> ${sec.transactions} invoices</span></div>
-                    </div>
-                </div>
-            `;
+            let topHtml = `<div class="top-products-list"><div class="small fw-semibold mb-1">🏆 Top 3 Products</div>`;
+            if(sec.topProducts.length === 0) topHtml += `<div class="text-muted">—</div>`;
+            else {
+                sec.topProducts.forEach((p, idx) => {
+                    topHtml += `<div class="top-product-item"><span class="badge bg-light text-dark me-1">${idx+1}</span> <span class="product-name-trunc" title="${escapeHtml(p.name)}">${truncate(p.name,22)}</span> <span class="product-amt">${formatCurrency(p.amount)}</span></div>`;
+                });
+            }
+            topHtml += `</div>`;
+            html += `<div class="col-md-6 col-lg-4"><div class="kpi-card-modern" style="border-bottom-color: ${borderCol};"><div class="kpi-title">${sec.section}</div><div class="kpi-value">${formatCurrency(sec.totalSales)}</div><div class="stats-row"><span><i class="bi bi-people"></i> ${sec.uniqueCustomers}</span><span>${percentVal.toFixed(1)}%</span><span><i class="bi bi-receipt"></i> ${sec.transactions}</span></div><div class="section-progress"><div style="width:${Math.min(percentVal,100)}%; background:${borderCol}; height:5px;"></div></div>${topHtml}</div></div>`;
         }
-        
-        sectionRow1.innerHTML = '';
-        firstThree.forEach(s => { sectionRow1.innerHTML += renderCard(s); });
-        sectionRow2.innerHTML = '';
-        lastTwo.forEach(s => { sectionRow2.innerHTML += renderCard(s); });
-        
-        summaryBody.innerHTML = "";
-        for (const sec of sectionsArray) {
-            const row = document.createElement('tr');
-            row.innerHTML = `<td><span class="badge badge-section px-3 py-2">${sec.section}</span></td><td class="fw-bold">${formatCurrencyWhole(sec.totalSales)}</td><td>${sec.uniqueCustomers}</td><td>${sec.percentOfTotal.toFixed(2)}%</td><td>${sec.transactions}</td>`;
-            summaryBody.appendChild(row);
-        }
-        const totalRow = document.createElement('tr');
-        totalRow.classList.add('table-secondary');
-        totalRow.innerHTML = `<td><strong>TOTAL</strong></td><td><strong>${formatCurrencyWhole(overallTotal)}</strong></td><td><strong>${totalUniqueCustomers}</strong></td><td>100%</td><td><strong>${sectionsArray.reduce((acc,s)=>acc+s.transactions,0)}</strong></td>`;
-        summaryBody.appendChild(totalRow);
+        html += `</div>`;
+        container.innerHTML = html;
     }
     
-    function processSales() {
-        if (!salesFileLoaded || !bcFileLoaded) { alert("Please upload both Sales and BC Master files first."); return; }
-        if (!salesData.length || !bcData.length) { alert("Data missing or empty."); return; }
-        const mergedFilteredSales = getFilteredSalesRowsWithManual();
-        if (mergedFilteredSales.length === 0 && manualEntries.length === 0) { alert("No valid Syokimau sales found after filtering (or no manual entries). Ensure sales have service_point = 'Syokimau Retail', 'Syokimau Deli', or 'Syokimau Pharmacy'."); return; }
-        extractedAnalysisDate = extractAnalysisDateFromSales(mergedFilteredSales);
-        const categorized = categorizeSales(mergedFilteredSales);
-        const { sections, overallTotal, totalUniqueCustomers } = computeKPIs(categorized);
-        renderDashboard(sections, overallTotal, totalUniqueCustomers);
+    // Comparison view
+    function renderComparisonView(syokimauRes, ruiruRes) {
+        const grid = document.getElementById('comparisonGrid');
+        if(!syokimauRes || !ruiruRes) { grid.innerHTML = `<div class="alert alert-info">Process both locations first.</div>`; return; }
+        const syoMap = new Map(syokimauRes.sections.map(s => [s.section, s]));
+        const ruiMap = new Map(ruiruRes.sections.map(s => [s.section, s]));
+        
+        const syoWholesale = syoMap.get("WHOLESALE") || { totalSales:0, uniqueCustomers:0, transactions:0, topProducts:[] };
+        const syoRetail = syoMap.get("RETAIL") || { totalSales:0, uniqueCustomers:0, transactions:0, topProducts:[] };
+        const syoCombined = {
+            totalSales: syoWholesale.totalSales + syoRetail.totalSales,
+            uniqueCustomers: (syoWholesale.uniqueCustomers || 0) + (syoRetail.uniqueCustomers || 0),
+            transactions: (syoWholesale.transactions||0)+(syoRetail.transactions||0),
+            topProducts: mergeTopProducts([syoWholesale.topProducts || [], syoRetail.topProducts || []])
+        };
+        const ruiCombined = ruiMap.get("WHOLESALE & RETAIL") || { totalSales:0, uniqueCustomers:0, transactions:0, topProducts:[] };
+        
+        const categories = [
+            { name: "PHARMACY", syo: syoMap.get("PHARMACY"), rui: ruiMap.get("PHARMACY"), color: "#1e88e5" },
+            { name: "LIQUOR", syo: syoMap.get("LIQUOR"), rui: ruiMap.get("LIQUOR"), color: "#b23c1c" },
+            { name: "DELI/BAKERY", syo: syoMap.get("DELI/BAKERY"), rui: ruiMap.get("DELI/BAKERY"), color: "#e67e22" },
+            { name: "WHOLESALE & RETAIL (Syokimau: Wholesale+Retail | Ruiru: Combined)", syo: syoCombined, rui: ruiCombined, color: "#2c5f2d" }
+        ];
+        
+        let comparisonHtml = `<div class="row g-4">`;
+        for(let cat of categories) {
+            comparisonHtml += `<div class="col-12"><div class="card-glass p-3"><h5 class="fw-bold" style="border-left: 4px solid ${cat.color}; padding-left: 12px;">${cat.name}</h5><div class="row g-3"><div class="col-md-6"><div class="bg-light p-3 rounded-3"><div class="fw-bold">Syokimau</div><div class="kpi-value fs-4">${formatCurrency(cat.syo?.totalSales || 0)}</div><div class="small">👥 ${cat.syo?.uniqueCustomers || 0} customers · ${cat.syo?.transactions || 0} invoices</div>${renderTopProductsMini(cat.syo?.topProducts)}</div></div><div class="col-md-6"><div class="bg-light p-3 rounded-3"><div class="fw-bold">Ruiru</div><div class="kpi-value fs-4">${formatCurrency(cat.rui?.totalSales || 0)}</div><div class="small">👥 ${cat.rui?.uniqueCustomers || 0} customers · ${cat.rui?.transactions || 0} invoices</div>${renderTopProductsMini(cat.rui?.topProducts)}</div></div></div></div></div>`;
+        }
+        comparisonHtml += `</div><div class="mt-4 card-glass p-3"><h5>🏆 Overall Comparison</h5><div class="row"><div class="col-6"><strong>Syokimau Total:</strong> ${formatCurrency(syokimauRes.overallTotal)}<br><span class="small">👥 ${syokimauRes.totalUniqueCustomers} unique invoices</span></div><div class="col-6"><strong>Ruiru Total:</strong> ${formatCurrency(ruiruRes.overallTotal)}<br><span class="small">👥 ${ruiruRes.totalUniqueCustomers} unique invoices</span></div></div></div>`;
+        grid.innerHTML = comparisonHtml;
+    }
+    
+    function mergeTopProducts(productsArr) {
+        let mergedMap = new Map();
+        for(let arr of productsArr) {
+            if(!arr) continue;
+            for(let p of arr) { let cur = mergedMap.get(p.name) || 0; mergedMap.set(p.name, cur + p.amount); }
+        }
+        return Array.from(mergedMap.entries()).map(([name, amount]) => ({ name, amount })).sort((a,b)=>b.amount - a.amount).slice(0,3);
+    }
+    function renderTopProductsMini(products) {
+        if(!products || products.length===0) return `<div class="mt-2 small text-muted">No top products</div>`;
+        let html = `<div class="mt-2 small"><strong>🏆 Top 3:</strong><ul class="list-unstyled mb-0">`;
+        products.slice(0,3).forEach(p => { html += `<li class="d-flex justify-content-between"><span>${truncate(p.name,20)}</span><span class="fw-bold">${formatCurrency(p.amount)}</span></li>`; });
+        html += `</ul></div>`;
+        return html;
+    }
+    function truncate(str, len) { if(!str) return ""; return str.length > len ? str.substring(0,len-2)+".." : str; }
+    function formatCurrency(val) { return new Intl.NumberFormat('en-KE', { style:'currency', currency:'KES', minimumFractionDigits:0, maximumFractionDigits:0 }).format(Math.round(val||0)); }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    
+    // Process both locations
+    async function processBoth() {
+        if(!bcLoaded) { alert("Please upload BC Master file first."); return; }
+        syokimauProcessed = processLocation('syokimau');
+        ruiruProcessed = processLocation('ruiru');
+        renderLocationDashboard('syokimauContainer', 'Syokimau', syokimauProcessed);
+        renderLocationDashboard('ruiruContainer', 'Ruiru', ruiruProcessed);
+        if(currentMode === 'on') renderComparisonView(syokimauProcessed, ruiruProcessed);
+        else document.getElementById('comparisonView').style.display = 'none';
+    }
+    
+    // UI Updates for manual amounts
+    function updateManualListsUI() {
+        const syoDiv = document.getElementById('syoManualList');
+        if(syokimauManualAmounts.length === 0) syoDiv.innerHTML = '<div class="text-muted fst-italic">No manual entries yet. Add amounts above.</div>';
+        else {
+            syoDiv.innerHTML = syokimauManualAmounts.map((amt, idx) => `<div class="manual-amount-card d-flex justify-content-between align-items-center"><div><i class="bi bi-receipt"></i> <strong>Manual Amount ${idx+1}</strong> : ${formatCurrency(amt)}</div><i class="bi bi-trash3 remove-manual" data-location="syokimau" data-idx="${idx}"></i></div>`).join('');
+        }
+        const ruiDiv = document.getElementById('ruiruManualList');
+        if(ruiruManualAmounts.length === 0) ruiDiv.innerHTML = '<div class="text-muted fst-italic">No manual entries yet. Add amounts above.</div>';
+        else {
+            ruiDiv.innerHTML = ruiruManualAmounts.map((amt, idx) => `<div class="manual-amount-card d-flex justify-content-between align-items-center"><div><i class="bi bi-receipt"></i> <strong>Manual Amount ${idx+1}</strong> : ${formatCurrency(amt)}</div><i class="bi bi-trash3 remove-manual" data-location="ruiru" data-idx="${idx}"></i></div>`).join('');
+        }
+        document.querySelectorAll('.remove-manual').forEach(el => {
+            el.removeEventListener('click', handleManualDelete);
+            el.addEventListener('click', handleManualDelete);
+        });
+    }
+    function handleManualDelete(e) {
+        const target = e.currentTarget;
+        const location = target.getAttribute('data-location');
+        const idx = parseInt(target.getAttribute('data-idx'));
+        if(location === 'syokimau') syokimauManualAmounts.splice(idx, 1);
+        else ruiruManualAmounts.splice(idx, 1);
+        updateManualListsUI();
+        if(bcLoaded) processBoth(); 
+    }
+    
+    function addManualAmount(location) {
+        let amountInput = location === 'syokimau' ? document.getElementById('syoManualAmount') : document.getElementById('ruiruManualAmount');
+        let amt = parseFloat(amountInput.value);
+        if(isNaN(amt) || amt <= 0) { alert("Enter a valid positive amount (KES)."); return; }
+        if(location === 'syokimau') {
+            syokimauManualAmounts.push(amt);
+            document.getElementById('syoManualAmount').value = '';
+        } else {
+            ruiruManualAmounts.push(amt);
+            document.getElementById('ruiruManualAmount').value = '';
+        }
+        updateManualListsUI();
+        if(bcLoaded) processBoth();
+        else alert(`Manual amount ${formatCurrency(amt)} saved. Upload BC file to analyze.`);
+    }
+    
+    function setMode(mode) {
+        currentMode = mode;
+        const stdView = document.getElementById('standardView');
+        const compView = document.getElementById('comparisonView');
+        if(mode === 'off') {
+            stdView.style.display = 'block';
+            compView.style.display = 'none';
+            document.querySelectorAll('.comparison-mode-off').forEach(el => el.classList.add('comparison-active'));
+            document.querySelectorAll('.comparison-mode-on').forEach(el => el.classList.remove('comparison-active'));
+        } else {
+            stdView.style.display = 'none';
+            compView.style.display = 'block';
+            if(syokimauProcessed && ruiruProcessed) renderComparisonView(syokimauProcessed, ruiruProcessed);
+            document.querySelectorAll('.comparison-mode-on').forEach(el => el.classList.add('comparison-active'));
+            document.querySelectorAll('.comparison-mode-off').forEach(el => el.classList.remove('comparison-active'));
+        }
     }
     
     function resetAll() {
-        salesData = []; bcData = []; salesFileLoaded = false; bcFileLoaded = false; extractedAnalysisDate = null;
-        manualEntries = [];
-        salesFileNameSpan.innerText = ""; bcFileNameSpan.innerText = "";
-        salesFileInput.value = ""; bcFileInput.value = "";
-        updateProcessButton();
-        kpiDashboard.style.display = "none";
-        if(globalKPIsContainer) globalKPIsContainer.style.display = "none";
-        renderManualEntries();
+        salesData = []; bcData = []; salesLoaded = false; bcLoaded = false;
+        syokimauManualAmounts = []; ruiruManualAmounts = [];
+        syokimauProcessed = null; ruiruProcessed = null;
+        document.getElementById('salesFileName').innerText = ""; document.getElementById('bcFileName').innerText = "";
+        document.getElementById('salesFileInput').value = ""; document.getElementById('bcFileInput').value = "";
+        document.getElementById('syokimauContainer').innerHTML = '<div class="alert alert-secondary">Upload files & add manual amounts, then click "Analyze Both"</div>';
+        document.getElementById('ruiruContainer').innerHTML = '<div class="alert alert-secondary">Upload files & add manual amounts</div>';
+        document.getElementById('comparisonGrid').innerHTML = '';
+        document.getElementById('comparisonView').style.display = 'none';
+        document.getElementById('standardView').style.display = 'block';
+        currentMode = 'off';
+        updateManualListsUI();
+        document.querySelectorAll('.comparison-mode-off').forEach(el => el.classList.add('comparison-active'));
+        document.querySelectorAll('.comparison-mode-on').forEach(el => el.classList.remove('comparison-active'));
     }
     
+    // File handlers
     function setupUploadZone(zone, fileInput, onLoadCallback, fileNameSpan) {
         zone.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            fileNameSpan.innerText = `📄 ${file.name}`;
-            parseExcelFile(file, (rows) => { if (rows && rows.length) onLoadCallback(rows); else alert("Invalid file"); });
-        });
+        fileInput.addEventListener('change', (e) => { const f = e.target.files[0]; if(f){ fileNameSpan.innerText = `📄 ${f.name}`; parseExcel(f, onLoadCallback); } });
         zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.style.background = "#e9ecef"; });
         zone.addEventListener('dragleave', () => { zone.style.background = "#fefefe"; });
-        zone.addEventListener('drop', (e) => {
-            e.preventDefault(); zone.style.background = "#fefefe";
-            const file = e.dataTransfer.files[0];
-            if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
-                fileInput.files = e.dataTransfer.files;
-                fileNameSpan.innerText = `📄 ${file.name}`;
-                parseExcelFile(file, (rows) => { if (rows && rows.length) onLoadCallback(rows); else alert("Invalid excel"); });
-            } else alert("Upload .xlsx or .xls");
-        });
+        zone.addEventListener('drop', (e) => { e.preventDefault(); zone.style.background = "#fefefe"; const f = e.dataTransfer.files[0]; if(f && (f.name.endsWith('.xlsx')||f.name.endsWith('.xls'))) { fileInput.files = e.dataTransfer.files; fileNameSpan.innerText = `📄 ${f.name}`; parseExcel(f, onLoadCallback); } else alert("Excel file required"); });
     }
+    function parseExcel(file, callback) { const reader = new FileReader(); reader.onload = (e) => { const data = new Uint8Array(e.target.result); const wb = XLSX.read(data, { type: 'array' }); const sheet = wb.Sheets[wb.SheetNames[0]]; const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }); callback(rows); }; reader.readAsArrayBuffer(file); }
+    function onSalesLoaded(rows) { salesData = rows; salesLoaded = true; if(bcLoaded) processBoth(); }
+    function onBCLoaded(rows) { bcData = rows; bcLoaded = true; if(salesLoaded || syokimauManualAmounts.length || ruiruManualAmounts.length) processBoth(); else processBoth(); }
     
-    setupUploadZone(salesUploadZone, salesFileInput, onSalesLoaded, salesFileNameSpan);
-    setupUploadZone(bcUploadZone, bcFileInput, onBCLoaded, bcFileNameSpan);
-    processBtn.addEventListener('click', processSales);
-    resetBtn.addEventListener('click', resetAll);
-    addManualEntryBtn.addEventListener('click', addManualEntry);
-    
-    renderManualEntries();
+    setupUploadZone(document.getElementById('salesUploadZone'), document.getElementById('salesFileInput'), onSalesLoaded, document.getElementById('salesFileName'));
+    setupUploadZone(document.getElementById('bcUploadZone'), document.getElementById('bcFileInput'), onBCLoaded, document.getElementById('bcFileName'));
+    document.getElementById('processBothBtn').addEventListener('click', processBoth);
+    document.getElementById('resetDataBtn').addEventListener('click', resetAll);
+    document.getElementById('addSyoManualBtn').addEventListener('click', () => addManualAmount('syokimau'));
+    document.getElementById('addRuiruManualBtn').addEventListener('click', () => addManualAmount('ruiru'));
+    document.querySelectorAll('.comparison-mode-off').forEach(el => el.addEventListener('click', () => setMode('off')));
+    document.querySelectorAll('.comparison-mode-on').forEach(el => el.addEventListener('click', () => setMode('on')));
+    updateManualListsUI();
+    resetAll();
 </script>
 </body>
 </html>
