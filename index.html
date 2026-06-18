@@ -1,10 +1,9 @@
-load both the pos sales and bc master file
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Syokimau vs Ruiru | Sales Intelligence + Manual Amounts Only</title>
+    <title>Syokimau vs Ruiru | </title>
     <!-- Bootstrap 5 + Icons + Custom Font -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -117,7 +116,7 @@ load both the pos sales and bc master file
         <div class="row g-4" id="comparisonGrid"></div>
     </div>
 
-    <footer class="mt-4 text-center small text-muted"><hr>✅ Deli/Bakery logic unified: product keywords (deli, bakery, cake, xana) trigger Deli section for both locations while respecting service point filters. Manual amounts only require amount input.</footer>
+    <footer class="mt-4 text-center small text-muted"><hr>✅ Deli/Bakery logic: Products beginning with "xana" (case-insensitive) EXCLUDING those with sugar, water, rice.</footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
@@ -131,6 +130,16 @@ load both the pos sales and bc master file
     let syokimauManualAmounts = [];
     let ruiruManualAmounts = [];
     
+    // Helper function to get column value by trying multiple possible names
+    function getColumnValue(row, possibleNames) {
+        for(let name of possibleNames) {
+            if(row[name] !== undefined && row[name] !== null && row[name] !== '') {
+                return row[name];
+            }
+        }
+        return '';
+    }
+    
     // BC Map Builder
     function buildBCMap() { 
         const map = new Map(); 
@@ -142,97 +151,114 @@ load both the pos sales and bc master file
         return map; 
     }
     
-    // Service point filters
+    // Service point filters - updated to handle various column name formats
     function isSyokimau(sp) { 
         const s = (sp || "").trim(); 
-        return s === "Syokimau Retail" || s === "Syokimau Deli" || s === "Syokimau Pharmacy"; 
+        return s === "Syokimau Retail" || s === "Syokimau Deli" || s === "Syokimau Pharmacy" || 
+               s.toLowerCase().includes("syokimau"); 
     }
     function isRuiru(sp) { 
-        return (sp || "").toLowerCase().includes("ruiru"); 
+        const s = (sp || "").toLowerCase().trim(); 
+        return s.includes("ruiru"); 
     }
     
-    // Convert manual amounts to row format
+    // Convert manual amounts to row format (align with new POS columns)
     function convertManualAmountsToRows(location, amountList) {
         if(!amountList.length) return [];
         return amountList.map((amount, idx) => {
             let uniqueId = `MANUAL_${location}_${Date.now()}_${idx}_${Math.random().toString(36).substr(2, 4)}`;
             let productName = `Manual Invoice ${idx+1}`;
             return {
-                'product': productName,
+                'Sale ID': uniqueId,
                 'Product': productName,
-                'amount': parseFloat(amount) || 0,
+                'Customer': 'Manual',
+                'Service Point': location === 'syokimau' ? "Syokimau Retail" : "Ruiru Retail",
+                'Station': '',
+                'Invoice No': uniqueId,
+                'Qty': 1,
+                'Cashier': 'manual',
+                'Status': 'Paid',
+                'Price': parseFloat(amount) || 0,
                 'Amount': parseFloat(amount) || 0,
-                'invoice_no': uniqueId,
+                'Date': new Date().toISOString().split('T')[0],
+                'Category': 'Retail',
+                'Parent Category': '',
+                'Tax Category': '',
+                'Payment Mode': 'cash',
+                'Unit Cost': 0,
+                'Actual Cost': 0,
+                // legacy fields for compatibility
                 'Invoice_No': uniqueId,
-                'service_point': location === 'syokimau' ? "Syokimau Retail" : "Ruiru Manual",
-                'service point': location === 'syokimau' ? "Syokimau Retail" : "Ruiru Manual",
+                'service point': location === 'syokimau' ? "Syokimau Retail" : "Ruiru Retail",
                 'is_manual_entry': true,
                 'manual_amount_only': true
             };
         });
     }
     
-    // Helper function to detect Deli/Bakery products (unified logic for both locations)
+    // UNIFIED Deli/Bakery detection - CORRECTED LOGIC
+    // Only products that start with "xana" (case-insensitive) 
+    // EXCLUDING those that contain: sugar, water, rice
     function isDeliBakeryProduct(productName, servicePoint) {
-        const prod = productName.toLowerCase();
-        const sp = servicePoint.toLowerCase();
-        // Product-based detection (same as Syokimau logic)
-        if(prod.includes("deli") || prod.includes("bakery") || prod.includes("cake") || 
-           (prod.includes("xana") && !prod.includes("water"))) {
-            return true;
+        const prod = (productName || "").toLowerCase().trim();
+        
+        // Must start with "xana"
+        if(!prod.startsWith('xana')) {
+            return false;
         }
-        // Service point based detection for Ruiru (if service point contains deli)
-        if(sp.includes("deli")) return true;
-        return false;
+        
+        // Check for excluded terms - if any are present, it's NOT Deli/Bakery
+        const excludedTerms = ['sugar', 'water', 'rice'];
+        for(let term of excludedTerms) {
+            if(prod.includes(term)) {
+                return false;
+            }
+        }
+        
+        // If it starts with "xana" and doesn't have excluded terms, it's Deli/Bakery
+        return true;
     }
     
-    // Categorization for Syokimau (with unified Deli logic)
-    function categorizeSyokimau(rows, bcMap) {
+    // UNIFIED categorization - same logic for BOTH locations
+    function categorizeRows(rows, bcMap, location) {
         return rows.map(row => {
-            let prod = (row['product'] || row['Product'] || "").toString().toLowerCase();
-            let amt = parseFloat(row['amount'] || row['Amount'] || 0) || 0;
-            let spRaw = (row['service_point'] || row['service point'] || "").toString().toLowerCase();
-            let invNo = (row['invoice_no'] || row['Invoice_No'] || "").toString().trim() || `inv_${Math.random()}`;
+            let prod = (getColumnValue(row, ['Product', 'product']) || "").toString().toLowerCase();
+            let amt = parseFloat(getColumnValue(row, ['Amount', 'amount']) || 0) || 0;
+            let spRaw = (getColumnValue(row, ['Service Point', 'service_point', 'service point']) || "").toString().toLowerCase();
+            let invNo = (getColumnValue(row, ['Invoice No', 'Invoice_No', 'invoice_no']) || "").toString().trim() || `inv_${Math.random()}`;
             let isManual = row.is_manual_entry === true;
-            let productNameRaw = row['product'] || row['Product'] || "Generic";
+            let productNameRaw = getColumnValue(row, ['Product', 'product']) || "Generic";
             
-            let section = "RETAIL";
-            if(isManual) section = "RETAIL";
-            else if(prod.includes("box") || prod.includes("outer") || prod.includes("bale")) section = "WHOLESALE";
-            else if(spRaw.includes("pharmacy")) section = "PHARMACY";
-            else if(isDeliBakeryProduct(prod, spRaw)) section = "DELI/BAKERY";
-            else {
-                let matched = null;
-                for(let [desc, grp] of bcMap.entries()) if(prod.includes(desc) || desc.includes(prod)) { matched = grp; break; }
-                if(matched && matched.toUpperCase() === "WINES & SPIRITS") section = "LIQUOR";
+            let section = location === 'syokimau' ? "RETAIL" : "WHOLESALE & RETAIL";
+            
+            if(isManual) {
+                section = location === 'syokimau' ? "RETAIL" : "WHOLESALE & RETAIL";
             }
-            // Override for pharmacy if service point indicates
-            if(spRaw.includes("pharmacy")) section = "PHARMACY";
-            
-            return { ...row, amount: amt, invoiceNo: invNo, section, productName: productNameRaw, service_point: spRaw };
-        });
-    }
-    
-    // Categorization for Ruiru - unified Deli logic same as Syokimau, but with Wholesale & Retail default
-    function categorizeRuiru(rows, bcMap) {
-        return rows.map(row => {
-            let prod = (row['product'] || row['Product'] || "").toString().toLowerCase();
-            let amt = parseFloat(row['amount'] || row['Amount'] || 0) || 0;
-            let spRaw = (row['service_point'] || row['service point'] || "").toString().toLowerCase();
-            let invNo = (row['invoice_no'] || row['Invoice_No'] || "").toString().trim() || `inv_${Math.random()}`;
-            let isManual = row.is_manual_entry === true;
-            let productNameRaw = row['product'] || row['Product'] || "Generic";
-            
-            let section = "WHOLESALE & RETAIL";
-            if(isManual) section = "WHOLESALE & RETAIL";
-            else if(spRaw.includes("pharmacy")) section = "PHARMACY";
-            else if(isDeliBakeryProduct(prod, spRaw)) section = "DELI/BAKERY";
-            else {
-                let matched = null;
-                for(let [desc, grp] of bcMap.entries()) if(prod.includes(desc) || desc.includes(prod)) { matched = grp; break; }
-                if(matched && matched.toUpperCase() === "WINES & SPIRITS") section = "LIQUOR";
-                else section = "WHOLESALE & RETAIL";
+            else if(spRaw.includes("pharmacy")) {
+                section = "PHARMACY";
             }
+            else if(isDeliBakeryProduct(prod, spRaw)) {
+                section = "DELI/BAKERY";
+            }
+            else if(prod.includes("box") || prod.includes("outer") || prod.includes("bale")) {
+                section = "WHOLESALE";
+            }
+            else {
+                // Check BC mapping for other categories
+                let matched = null;
+                for(let [desc, grp] of bcMap.entries()) {
+                    if(prod.includes(desc) || desc.includes(prod)) { 
+                        matched = grp; 
+                        break; 
+                    }
+                }
+                if(matched && matched.toUpperCase() === "WINES & SPIRITS") {
+                    section = "LIQUOR";
+                }
+                // Keep default section if no match
+            }
+            
+            // Override if service point indicates specific categories
             if(spRaw.includes("pharmacy")) section = "PHARMACY";
             if(spRaw.includes("liquor")) section = "LIQUOR";
             
@@ -248,8 +274,8 @@ load both the pos sales and bc master file
         for(const row of categorizedRows) {
             const sec = row.section;
             const amt = row.amount;
-            const inv = row.invoiceNo;
-            const prodNameRaw = row.productName || "Unknown";
+            const inv = row.invoiceNo || row.invoice_no || getColumnValue(row, ['Invoice No', 'Invoice_No']);
+            const prodNameRaw = row.productName || row.product || getColumnValue(row, ['Product', 'product']) || "Unknown";
             globalTotal += amt;
             if(inv) globalInvoices.add(inv);
             if(!sectionsMap.has(sec)) sectionsMap.set(sec, { totalSales:0, uniqueInvoices: new Set(), transactions:0, productMap: new Map() });
@@ -283,8 +309,17 @@ load both the pos sales and bc master file
     function getFilteredRowsWithManual(locationType, bcMap) {
         let baseRows = salesData || [];
         let filtered = [];
-        if(locationType === 'syokimau') filtered = baseRows.filter(r => isSyokimau(r['service_point'] || r['service point'] || ""));
-        else filtered = baseRows.filter(r => isRuiru(r['service_point'] || r['service point'] || ""));
+        if(locationType === 'syokimau') {
+            filtered = baseRows.filter(r => {
+                let sp = getColumnValue(r, ['Service Point', 'service_point', 'service point']);
+                return isSyokimau(sp);
+            });
+        } else {
+            filtered = baseRows.filter(r => {
+                let sp = getColumnValue(r, ['Service Point', 'service_point', 'service point']);
+                return isRuiru(sp);
+            });
+        }
         
         let manualRows = [];
         if(locationType === 'syokimau') manualRows = convertManualAmountsToRows('syokimau', syokimauManualAmounts);
@@ -299,9 +334,9 @@ load both the pos sales and bc master file
         const bcMap = buildBCMap();
         const rows = getFilteredRowsWithManual(location, bcMap);
         if(rows.length === 0) return { sections: [], overallTotal: 0, totalUniqueCustomers: 0, rawCategorized: [] };
-        let categorized;
-        if(location === 'syokimau') categorized = categorizeSyokimau(rows, bcMap);
-        else categorized = categorizeRuiru(rows, bcMap);
+        
+        // Use the same categorization function for both locations
+        const categorized = categorizeRows(rows, bcMap, location);
         const { sections, overallTotal, totalUniqueCustomers } = computeKPIsWithTopProducts(categorized);
         return { sections, overallTotal, totalUniqueCustomers, rawCategorized: categorized };
     }
@@ -508,4 +543,3 @@ load both the pos sales and bc master file
 </script>
 </body>
 </html>
-```
