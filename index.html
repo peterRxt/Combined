@@ -1,1195 +1,1021 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-    <title>Syokimau vs Ruiru | Sales Analyzer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Branch Sales</title>
     <!-- Bootstrap 5 + Icons + Custom Font -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <!-- SheetJS -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js">
-    </script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
-        /* (styles unchanged, same as previous) */
-        * {
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-        }
-        body {
-            background: #eef2f5;
-            padding-bottom: 2rem;
-        }
-        .gradient-header {
-            background: linear-gradient(135deg, #0B2B40 0%, #1A4A5F 100%);
-            color: white;
-            border-radius: 0 0 2rem 2rem;
-            padding: 1.5rem 1rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-        .card-glass {
-            background: rgba(255, 255, 255, 0.96);
-            border: none;
-            border-radius: 1.5rem;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s;
-        }
-        .upload-zone {
-            border: 2px dashed #cbd5e1;
-            border-radius: 1.5rem;
-            background: #fefefe;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .upload-zone:hover {
-            background-color: #f1f5f9;
-            border-color: #1A4A5F;
-        }
+        * { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #eef2f5; padding-bottom: 2rem; }
+        .gradient-header { background: linear-gradient(135deg, #0B2B40 0%, #1A4A5F 100%); color: white; border-radius: 0 0 2rem 2rem; padding: 1.5rem 1rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .card-glass { background: rgba(255,255,255,0.96); border: none; border-radius: 1.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+        .upload-zone { border: 2px dashed #cbd5e1; border-radius: 1.5rem; background: #fefefe; transition: all 0.2s; cursor: pointer; }
+        .upload-zone:hover { background-color: #f1f5f9; border-color: #1A4A5F; }
+
+        /* ---------- KPI CARDS (resized, no overlap) ---------- */
         .kpi-card-modern {
-            background: white;
-            border-radius: 1.5rem;
-            padding: 1rem;
-            transition: all 0.2s ease;
+            background: #fff;
+            border-radius: 1.25rem;
+            padding: 1rem 1rem 0.9rem;
             border-bottom: 4px solid;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
             height: 100%;
             display: flex;
             flex-direction: column;
-        }
-        .kpi-card-modern:hover {
-            transform: translateY(-3px);
-        }
-        .kpi-title {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-            color: #4b5563;
+            overflow: hidden;
+            min-width: 0;
         }
         .kpi-value {
-            font-size: 1.6rem;
+            font-size: 1.35rem;
             font-weight: 800;
             color: #0f172a;
-            line-height: 1.2;
-            margin: 0.2rem 0 0.2rem;
+            line-height: 1.25;
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
-        .global-kpi-card {
-            background: linear-gradient(145deg, #ffffff, #fefefe);
-            border-radius: 1.8rem;
-            padding: 1rem 0.8rem;
-            text-align: center;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
-            border-bottom: 4px solid #1A4A5F;
-            transition: all 0.2s;
-            height: 100%;
-        }
-        .global-kpi-card:hover {
-            transform: translateY(-3px);
-        }
-        .global-kpi-number {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #0B2B40;
-        }
-        .section-progress {
-            height: 5px;
-            border-radius: 6px;
-            background-color: #e9ecef;
-            margin: 8px 0 6px;
-            overflow: hidden;
+        .kpi-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 700;
+            color: #4b5563;
+            margin-bottom: 0.35rem;
+            word-break: break-word;
         }
         .stats-row {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
             font-size: 0.7rem;
             font-weight: 500;
             color: #4b5563;
+            margin-top: 0.25rem;
         }
-        .btn-custom-primary {
-            background: #1A4A5F;
-            border-radius: 2rem;
-            padding: 0.5rem 1.2rem;
-            font-weight: 500;
-            color: white;
-            border: none;
+        .stats-row span { white-space: nowrap; }
+
+        .global-kpi-card { background: linear-gradient(145deg, #ffffff, #fefefe); border-radius: 1.8rem; padding: 1rem 0.8rem; text-align: center; box-shadow: 0 12px 24px rgba(0,0,0,0.05); border-bottom: 4px solid #1A4A5F; height: 100%; }
+        .global-kpi-number { font-size: 1.8rem; font-weight: 800; color: #0B2B40; line-height: 1.15; }
+
+        /* compact branch summary chip in the branch header */
+        .branch-summary {
+            width: auto;
+            min-width: 210px;
+            padding: 0.6rem 1.1rem !important;
+            border-radius: 1.25rem;
+            height: auto;
         }
-        .btn-ruiru {
-            background: #8B4513;
-            border-radius: 2rem;
-            padding: 0.5rem 1.2rem;
-            font-weight: 500;
-            color: white;
-        }
-        .comparison-toggle {
-            background: #f1f5f9;
-            border-radius: 3rem;
-            padding: 0.3rem;
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-flex;
-        }
-        .comparison-active {
-            background: #1A4A5F;
-            color: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        .top-products-list {
-            font-size: 0.7rem;
-            margin-top: 8px;
-            border-top: 1px solid #e9ecef;
-            padding-top: 6px;
-        }
-        .top-product-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
+        .branch-summary .global-kpi-number { font-size: 1.35rem; }
+
+        .btn-custom-primary { background: #1A4A5F; border-radius: 2rem; padding: 0.5rem 1.2rem; font-weight: 500; color: white; border: none; }
+        .btn-ruiru { background: #8B4513; border-radius: 2rem; padding: 0.5rem 1.2rem; font-weight: 500; color: white; }
+
+        /* ---------- TOP PRODUCTS (fixed truncation, no overlap) ---------- */
+        .top-products-list { font-size: 0.72rem; margin-top: 10px; border-top: 1px solid #e9ecef; padding-top: 8px; }
+        .top-product-item { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; min-width: 0; }
+        .top-product-item .badge { flex: 0 0 auto; }
         .product-name-trunc {
+            flex: 1 1 auto;
+            min-width: 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 120px;
             font-weight: 500;
         }
-        .product-amt {
-            font-weight: 600;
-            color: #0f172a;
-        }
-        .manual-card {
-            background: #fef9e6;
-            border-left: 6px solid #f4b942;
-        }
-        .manual-amount-card {
-            background: #fff7e6;
-            border-radius: 1rem;
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-            border-left: 3px solid #f4b942;
-        }
-        .remove-manual {
-            cursor: pointer;
-            opacity: 0.6;
-            transition: 0.2s;
-        }
-        .remove-manual:hover {
-            opacity: 1;
-            color: red;
-        }
+        .product-amt { flex: 0 0 auto; font-weight: 600; color: #0f172a; white-space: nowrap; }
+
+        .manual-card { background: #fef9e6; border-left: 6px solid #f4b942; }
+        .manual-amount-card { background: #fff7e6; border-radius: 1rem; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #f4b942; }
+        .pharmacy-card { background: white; border-radius: 1.2rem; padding: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border-left: 5px solid #1e88e5; height: 100%; min-width: 0; }
+        .tab-btn { border-radius: 2rem; padding: 0.4rem 1.2rem; font-weight: 500; border: none; background: #f1f5f9; transition: all 0.2s; }
+        .tab-btn.active-tab { background: #0B2B40; color: white; }
+        .katani-total-card { background: linear-gradient(145deg, #ffffff, #fafafa); border-radius: 1.8rem; padding: 1.5rem 1rem; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-bottom: 4px solid #2c5f2d; }
+        .katani-total-number { font-size: 2.6rem; font-weight: 800; color: #0B2B40; word-break: break-word; }
+        .table-wrap { overflow-x: auto; }
+        .pay-method-badge { background: #e9ecef; border-radius: 20px; padding: 0.2rem 0.6rem; font-size: 0.7rem; margin: 0 2px; display: inline-block; }
+        .export-btn { background: #28a745; border: none; border-radius: 2rem; padding: 0.5rem 1.5rem; color: white; font-weight: 500; }
+        .daily-table th, .daily-table td { vertical-align: middle; text-align: center; padding: 0.4rem 0.3rem; font-size: 0.8rem; }
+        .daily-table .branch-header { background: #f1f5f9; font-weight: 700; }
+        .daily-table .date-col { font-weight: 600; background: #fafafa; }
+        .daily-table .pay-detail { font-size: 0.7rem; color: #495057; }
+        .daily-table .total-sales { font-weight: 700; color: #0B2B40; }
+        .daily-table .customer-count { font-weight: 500; }
+        .daily-table .sub-header { background: #e9ecef; font-weight: 600; font-size: 0.7rem; }
+        .payment-col { min-width: 80px; }
+        .section-progress { height: 5px; background: #e9ecef; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+        .pharmacy-badge-main { background: #0B2B40; color: white; font-size: 0.6rem; padding: 0.15rem 0.5rem; border-radius: 12px; margin-left: 6px; }
+        .rule-pill { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35); border-radius: 20px; padding: 0.15rem 0.7rem; font-size: 0.7rem; display: inline-block; margin: 0.15rem 0.15rem 0 0; }
+
+        /* branch section wrapper spacing */
+        .branch-block { margin-bottom: 0.5rem; }
+
         @media (max-width: 768px) {
-            .kpi-value {
-                font-size: 1.3rem;
-            }
-            .product-name-trunc {
-                max-width: 80px;
-            }
-        }
-        .debug-info {
-            background: #f8f9fa;
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            font-size: 0.75rem;
-            color: #6c757d;
-            margin-top: 0.5rem;
-        }
-        .debug-log {
-            background: #1e1e2e;
-            color: #cdd6f4;
-            border-radius: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.7rem;
-            font-family: 'Courier New', monospace;
-            max-height: 140px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-            margin-top: 6px;
-        }
-        .badge-filtered {
-            background: #dc3545;
-            color: white;
-            font-size: 0.7rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: 1rem;
-        }
-        .badge-kept {
-            background: #198754;
-            color: white;
-            font-size: 0.7rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: 1rem;
-        }
-        .filter-stats {
-            font-size: 0.8rem;
-            background: #f8f9fa;
-            border-radius: 0.75rem;
-            padding: 0.4rem 0.8rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .file-type-badge {
-            background: #e9ecef;
-            border-radius: 1rem;
-            padding: 0.1rem 0.7rem;
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: #495057;
+            .kpi-value { font-size: 1.2rem; }
+            .katani-total-number { font-size: 2rem; }
+            .daily-table { font-size: 0.6rem; }
+            .branch-summary { min-width: 100%; }
         }
     </style>
 </head>
 <body>
 
-    <div class="gradient-header mb-4">
-        <div class="container">
-            <div class="d-flex align-items-center justify-content-between flex-wrap">
-                <div>
-                    <h1 class="display-6 fw-bold"><i class="bi bi-graph-up"></i> Syokimau vs Ruiru</h1>
-                    <p class="mb-0 opacity-75">Intelligent Categorizer · Auto-filters empty Payment Mode · All Excel types</p>
-                </div>
-                <div><i class="bi bi-pencil-square fs-1"></i></div>
-            </div>
-        </div>
-    </div>
-
+<div class="gradient-header mb-4">
     <div class="container">
-
-        <!-- File upload row -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-6">
-                <div class="card card-glass h-100 p-3">
-                    <div class="card-body">
-                        <h5 class="fw-bold"><i class="bi bi-receipt"></i> Sales File <span class="file-type-badge">.xlsx .xls .xlsm .xlsb .csv</span></h5>
-                        <div class="upload-zone p-3 text-center" id="salesUploadZone">
-                            <i class="bi bi-cloud-upload fs-1"></i>
-                            <p class="mb-0">Click or drag any Excel / CSV</p>
-                            <input type="file" id="salesFileInput" class="d-none" accept=".xlsx,.xls,.xlsm,.xlsb,.csv" />
-                            <div id="salesFileName" class="small text-success mt-1"></div>
-                            <div id="salesDebug" class="debug-info"></div>
-                            <div id="salesFilterStats" class="filter-stats mt-1" style="display:none;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card card-glass h-100 p-3">
-                    <div class="card-body">
-                        <h5 class="fw-bold"><i class="bi bi-database"></i> BC Master File <span class="file-type-badge">.xlsx .xls .xlsm .xlsb .csv</span></h5>
-                        <div class="upload-zone p-3 text-center" id="bcUploadZone">
-                            <i class="bi bi-file-spreadsheet fs-1"></i>
-                            <p class="mb-0">Upload BC (Description + Inventory Posting Group1)</p>
-                            <input type="file" id="bcFileInput" class="d-none" accept=".xlsx,.xls,.xlsm,.xlsb,.csv" />
-                            <div id="bcFileName" class="small text-success mt-1"></div>
-                            <div id="bcDebug" class="debug-info"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+            <div><h1 class="display-6 fw-bold"><i class="bi bi-graph-up"></i> Branch sales</h1><p class="mb-0 opacity-75"></p></div>
+            <div><i class="bi bi-pencil-square fs-1"></i></div>
         </div>
+        
+    </div>
+</div>
 
-    
-
-        <!-- Action bar -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
-            <div class="d-flex gap-2 flex-wrap">
-                <button class="btn btn-custom-primary" id="processBothBtn"><i class="bi bi-arrow-left-right"></i> Analyze Both</button>
-                <button class="btn btn-outline-secondary" id="resetDataBtn"><i class="bi bi-arrow-repeat"></i> Reset</button>
-                <button class="btn btn-outline-info" id="debugToggleBtn"><i class="bi bi-bug"></i> Debug</button>
-            </div>
-            <div class="comparison-toggle d-flex" id="comparisonToggleBtn">
-                <div class="px-3 py-1 rounded-pill comparison-mode-off comparison-active" data-mode="off">📊 Standard</div>
-                <div class="px-3 py-1 rounded-pill comparison-mode-on" data-mode="on">🔄 Compare</div>
-            </div>
-        </div>
-
-        <!-- Debug Panel -->
-        <div id="debugPanel" style="display:none;" class="mb-4">
-            <div class="card card-glass p-3">
-                <h6 class="fw-bold"><i class="bi bi-bug"></i> Debug Log</h6>
-                <div id="debugLog" class="debug-log">⏳ Waiting for data...</div>
-            </div>
-        </div>
-
-        <!-- DASHBOARD -->
-        <div id="standardView">
-            <div class="row g-4">
-                <div class="col-lg-6"><div id="syokimauContainer"></div></div>
-                <div class="col-lg-6"><div id="ruiruContainer"></div></div>
-            </div>
-        </div>
-        <div id="comparisonView" style="display: none;">
-            <div class="card card-glass p-3 mb-3"><h4 class="fw-bold text-center"><i class="bi bi-arrow-left-right"></i> Side-by-Side Comparison</h4></div>
-            <div class="row g-4" id="comparisonGrid"></div>
-        </div>
-
-        <footer class="mt-4 text-center small text-muted"><hr />✅ Deli/Bakery: products starting with "xana" (case-insensitive) EXCLUDING sugar, water, rice.</footer>
+<div class="container">
+    <!-- File upload row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6"><div class="card card-glass h-100 p-3"><div class="card-body"><h5 class="fw-bold"><i class="bi bi-receipt"></i> Sales File (Excel)</h5><div class="upload-zone p-3 text-center" id="salesUploadZone"><i class="bi bi-cloud-upload fs-1"></i><p class="mb-0">Click or drag .xlsx</p><input type="file" id="salesFileInput" class="d-none" /><div id="salesFileName" class="small text-success mt-1"></div></div></div></div></div>
+        <div class="col-md-6"><div class="card card-glass h-100 p-3"><div class="card-body"><h5 class="fw-bold"><i class="bi bi-database"></i> BC Master File</h5><div class="upload-zone p-3 text-center" id="bcUploadZone"><i class="bi bi-file-spreadsheet fs-1"></i><p class="mb-0">Upload BC (Description + Inventory Posting Group1)</p><input type="file" id="bcFileInput" class="d-none" /><div id="bcFileName" class="small text-success mt-1"></div></div></div></div></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js">
-    </script>
-    <script>
-        // ============================================================
-        // GLOBAL STATE
-        // ============================================================
-        let salesData = [],
-            bcData = [],
-            salesLoaded = false,
-            bcLoaded = false;
-        let syokimauProcessed = null,
-            ruiruProcessed = null;
-        let currentMode = 'off';
-        let debugEnabled = false;
-        let debugLines = [];
-        let syokimauManualAmounts = [];
-        let ruiruManualAmounts = [];
-        let filteredOutCount = 0;
+    <!-- MANUAL INVOICES: AMOUNTS ONLY -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card card-glass p-3 manual-card">
+                <h5 class="fw-bold"><i class="bi bi-pencil-square"></i> Manual – Syokimau</h5>
+                <div class="input-group mb-2">
+                    <span class="input-group-text">KES</span>
+                    <input type="number" id="syoManualAmount" class="form-control" placeholder="Amount" step="any">
+                    <button class="btn btn-custom-primary" id="addSyoManualBtn"><i class="bi bi-plus-circle"></i></button>
+                </div>
+                <div id="syoManualList" class="mt-1 small"></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-glass p-3 manual-card">
+                <h5 class="fw-bold"><i class="bi bi-pencil-square"></i> Manual – Ruiru</h5>
+                <div class="input-group mb-2">
+                    <span class="input-group-text">KES</span>
+                    <input type="number" id="ruiruManualAmount" class="form-control" placeholder="Amount" step="any">
+                    <button class="btn btn-ruiru" id="addRuiruManualBtn"><i class="bi bi-plus-circle"></i></button>
+                </div>
+                <div id="ruiruManualList" class="mt-1 small"></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-glass p-3 manual-card">
+                <h5 class="fw-bold"><i class="bi bi-pencil-square"></i> Manual – Katani</h5>
+                <div class="input-group mb-2">
+                    <span class="input-group-text">KES</span>
+                    <input type="number" id="kataniManualAmount" class="form-control" placeholder="Amount" step="any">
+                    <button class="btn btn-success" id="addKataniManualBtn"><i class="bi bi-plus-circle"></i></button>
+                </div>
+                <div id="kataniManualList" class="mt-1 small"></div>
+            </div>
+        </div>
+    </div>
 
-        // ============================================================
-        // DEBUG HELPER
-        // ============================================================
-        function debugLog(msg, data) {
-            const ts = new Date().toLocaleTimeString();
-            let line = `[${ts}] ${msg}`;
-            if (data !== undefined) {
-                try { line += ' ' + JSON.stringify(data).slice(0, 200); } catch (_) { line += ' [data]'; }
-            }
-            debugLines.push(line);
-            if (debugLines.length > 120) debugLines.shift();
-            if (debugEnabled) {
-                const el = document.getElementById('debugLog');
-                if (el) el.textContent = debugLines.join('\n');
+    <!-- Tabs & Export -->
+    <div class="d-flex gap-2 mb-4 flex-wrap">
+        <button class="tab-btn active-tab" id="tabMain">📊 Main Dashboard</button>
+        <button class="tab-btn" id="tabStandAlone">💊 All Pharmacies</button>
+        <button class="tab-btn" id="tabDaily">📅 Daily Summaries</button>
+        <button class="btn btn-custom-primary" id="processBothBtn"><i class="bi bi-arrow-left-right"></i> Analyze All</button>
+        <button class="btn export-btn" id="exportDailyBtn"><i class="bi bi-file-excel"></i> Export Daily Summary</button>
+        <button class="btn btn-outline-secondary" id="resetDataBtn"><i class="bi bi-arrow-repeat"></i> Reset</button>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="mainDashboard">
+        <div class="row g-4">
+            <div class="col-12"><div id="syokimauContainer" class="branch-block"></div></div>
+            <div class="col-12"><div id="ruiruContainer" class="branch-block"></div></div>
+            <div class="col-12"><div id="kataniContainer" class="branch-block"></div></div>
+        </div>
+    </div>
+
+    <!-- ALL PHARMACIES - captures EVERY service point with 'pharmacy' -->
+    <div id="standAloneView" style="display: none;">
+        <div class="card card-glass p-3 mb-3">
+            <h4 class="fw-bold text-center"><i class="bi bi-capsule"></i> All Pharmacies <span class="badge bg-info text-dark ms-2">auto‑detected</span></h4>
+            <p class="text-center text-muted small">Every service point containing <strong>"pharmacy"</strong> is captured here, including main branches.</p>
+        </div>
+        <div class="row g-4" id="pharmacyGrid"></div>
+    </div>
+
+    <!-- DAILY SUMMARIES - ALL BRANCHES INCLUDING ALL PHARMACIES -->
+    <div id="dailyView" style="display: none;">
+        <div class="card card-glass p-3 mb-3">
+            <h4 class="fw-bold"><i class="bi bi-calendar3"></i> Daily Sales Summary (all branches)</h4>
+            <p class="text-muted small">Each branch: Sales, Customers, and columns for each payment method</p>
+            <div id="dailySummaryContainer" class="table-wrap"></div>
+        </div>
+    </div>
+
+   
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ---------- GLOBALS ----------
+    let salesData = [], bcData = [], salesLoaded = false, bcLoaded = false;
+    let syokimauProcessed = null, ruiruProcessed = null, kataniProcessed = null;
+    let syokimauManualAmounts = [], ruiruManualAmounts = [], kataniManualAmounts = [];
+    let currentTab = 'main';
+    let globalDateRange = { min: null, max: null };
+    let dailySummaryData = [];
+
+    // ---------- WHOLESALE RULE ----------
+    // Any sales line whose Qty column is 6 or more automatically qualifies as WHOLESALE,
+    // PROVIDED it does not belong to Pharmacy, Liquor or Deli/Bakery.
+    const WHOLESALE_QTY_THRESHOLD = 6;
+
+    // Helper: get column value by trying multiple names
+    function getColumnValue(row, possibleNames) {
+        for(let name of possibleNames) {
+            if(row[name] !== undefined && row[name] !== null && row[name] !== '') return row[name];
+        }
+        return '';
+    }
+
+    // Helper: read the Qty column safely
+    function getQtyValue(row) {
+        const raw = getColumnValue(row, ['Qty', 'qty', 'QTY', 'Quantity', 'quantity', 'QUANTITY', 'Qty Sold', 'qty_sold']);
+        const n = parseFloat(String(raw).replace(/,/g, ''));
+        return isNaN(n) ? 0 : n;
+    }
+
+    // Helper: the wholesale bucket name used by each branch
+    function getWholesaleSectionName(location) {
+        if(location === 'syokimau') return 'WHOLESALE';
+        if(location === 'ruiru') return 'WHOLESALE & RETAIL';   // Ruiru = combined bucket
+        return 'WHOLESALE/RETAIL'; // katani
+    }
+
+    // Helper: the default bucket when nothing else matches
+    function getDefaultSectionName(location) {
+        return location === 'syokimau' ? 'RETAIL' : getWholesaleSectionName(location);
+    }
+
+    function parsePOSDate(dateStr) {
+        if(!dateStr) return null;
+        if(typeof dateStr === 'number') {
+            let d = new Date((dateStr - 25569) * 86400 * 1000);
+            if(!isNaN(d)) return d;
+            return null;
+        }
+        let str = String(dateStr).trim();
+        let d = new Date(str);
+        if(!isNaN(d) && d.getFullYear() > 2000) return d;
+        let parts = str.split(/[\s\/:]+/);
+        if(parts.length >= 3) {
+            let month = parseInt(parts[0]) - 1;
+            let day = parseInt(parts[1]);
+            let year = parseInt(parts[2]);
+            if(month < 0) month = 0;
+            if(month > 11) { let tmp = month; month = day - 1; day = tmp; }
+            let hour = 0, minute = 0;
+            if(parts.length >= 4) { hour = parseInt(parts[3]) || 0; minute = parseInt(parts[4]) || 0; }
+            if(!isNaN(month) && !isNaN(day) && !isNaN(year) && year > 2000 && year < 2100) {
+                let result = new Date(year, month, day, hour, minute);
+                if(!isNaN(result)) return result;
             }
         }
-
-        function toggleDebug() {
-            debugEnabled = !debugEnabled;
-            document.getElementById('debugPanel').style.display = debugEnabled ? 'block' : 'none';
-            if (debugEnabled) {
-                const el = document.getElementById('debugLog');
-                if (el) el.textContent = debugLines.join('\n') || '⏳ No debug output yet.';
-            }
-            debugLog('Debug ' + (debugEnabled ? 'ON' : 'OFF'));
+        let num = parseFloat(str);
+        if(!isNaN(num) && num > 40000 && num < 50000) {
+            let d = new Date((num - 25569) * 86400 * 1000);
+            if(!isNaN(d) && d.getFullYear() > 2000) return d;
         }
-        document.getElementById('debugToggleBtn').addEventListener('click', toggleDebug);
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.shiftKey && e.key === 'D') { e.preventDefault();
-                toggleDebug(); }
+        return null;
+    }
+
+    function extractDateRange(rows) {
+        let minDate = null, maxDate = null;
+        let dateCols = ['Date', 'date', 'DATE', 'Transaction Date', 'Invoice Date'];
+        for(let row of rows) {
+            let dateVal = null;
+            for(let col of dateCols) {
+                if(row[col] !== undefined && row[col] !== null && row[col] !== '') {
+                    dateVal = row[col];
+                    break;
+                }
+            }
+            if(dateVal) {
+                let d = parsePOSDate(dateVal);
+                if(d && !isNaN(d) && d.getFullYear() > 2000) {
+                    if(!minDate || d < minDate) minDate = d;
+                    if(!maxDate || d > maxDate) maxDate = d;
+                }
+            }
+        }
+        return { min: minDate, max: maxDate };
+    }
+
+    function formatDateRange(range) {
+        if(!range.min || !range.max) return 'No date range';
+        if(range.min.getFullYear() < 2000) return 'Date range unavailable';
+        const opts = { year: 'numeric', month: 'short', day: 'numeric' };
+        let minStr = range.min.toLocaleDateString('en-US', opts);
+        let maxStr = range.max.toLocaleDateString('en-US', opts);
+        if(minStr === maxStr) return minStr;
+        return `${minStr} – ${maxStr}`;
+    }
+
+    function formatDateKey(d) {
+        if(!d) return 'unknown';
+        try { return d.toISOString().split('T')[0]; } catch(e) { return 'unknown'; }
+    }
+
+    function formatDateDisplay(dStr) {
+        if(!dStr || dStr === 'unknown') return dStr;
+        try {
+            let parts = dStr.split('-');
+            if(parts.length === 3) {
+                let d = new Date(parts[0], parts[1]-1, parts[2]);
+                return d.toLocaleDateString('en-KE', { day:'2-digit', month:'short', year:'numeric' });
+            }
+        } catch(e) {}
+        return dStr;
+    }
+
+    // BC Map
+    function buildBCMap() { 
+        const map = new Map(); 
+        for(const row of bcData) { 
+            let desc = row['Description'] ? String(row['Description']).trim() : ""; 
+            let inv = row['Inventory Posting Group1'] ? String(row['Inventory Posting Group1']).trim() : ""; 
+            if(desc) map.set(desc.toLowerCase(), inv); 
+        } 
+        return map; 
+    }
+
+    // ---------- FLEXIBLE PHARMACY: any service point containing 'pharmacy' ----------
+    function isPharmacy(sp) { 
+        const s = (sp || "").toLowerCase().trim(); 
+        return s.includes('pharmacy') || s.includes('pharm'); 
+    }
+
+    // Main branch filters
+    function isSyokimau(sp) { const s = (sp || "").trim(); return s === "Syokimau Retail" || s === "Syokimau Deli" || s === "Syokimau Pharmacy" || s.toLowerCase().includes("syokimau"); }
+    function isRuiru(sp) { const s = (sp || "").toLowerCase().trim(); return s.includes("ruiru"); }
+    function isKatani(sp) { const s = (sp || "").toLowerCase().trim(); return s === "katani retail" || s.includes("katani retail"); }
+
+    function convertManualAmountsToRows(location, amountList) {
+        if(!amountList.length) return [];
+        return amountList.map((amount, idx) => {
+            let uniqueId = `MANUAL_${location}_${Date.now()}_${idx}_${Math.random().toString(36).substr(2, 4)}`;
+            let productName = `Manual Invoice ${idx+1}`;
+            let sp = location === 'syokimau' ? "Syokimau Retail" : location === 'ruiru' ? "Ruiru Retail" : "Katani Retail";
+            return {
+                'Sale ID': uniqueId, 'Product': productName, 'Customer': 'Manual',
+                'Service Point': sp, 'Station': '', 'Invoice No': uniqueId, 'Qty': 1,
+                'Cashier': 'manual', 'Status': 'Paid', 'Price': parseFloat(amount) || 0,
+                'Amount': parseFloat(amount) || 0, 
+                'Date': new Date().toISOString().split('T')[0],
+                'Category': 'Retail', 'Parent Category': '', 'Tax Category': '',
+                'Payment Mode': 'cash', 'Unit Cost': 0, 'Actual Cost': 0,
+                'Invoice_No': uniqueId, 'service point': sp, 'is_manual_entry': true, 'manual_amount_only': true
+            };
         });
+    }
 
-        // ============================================================
-        // COLUMN VALUE EXTRACTOR (ENHANCED)
-        // ============================================================
-        function getColumnValue(row, possibleNames) {
-            if (!row || typeof row !== 'object') return '';
-            for (const name of possibleNames) {
-                if (row[name] !== undefined && row[name] !== null && row[name] !== '') return row[name];
-            }
-            const rowKeys = Object.keys(row);
-            for (const name of possibleNames) {
-                const nLower = name.toLowerCase().trim();
-                for (const key of rowKeys) {
-                    if (key.toLowerCase().trim() === nLower) {
-                        if (row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
-                    }
+    function isDeliBakeryProduct(productName) {
+        const prod = (productName || "").toLowerCase().trim();
+        if(!prod.startsWith('xana')) return false;
+        const excluded = ['sugar', 'water', 'rice'];
+        for(let t of excluded) if(prod.includes(t)) return false;
+        return true;
+    }
+
+    // ---------- CORE CATEGORISATION ----------
+    function categorizeRows(rows, bcMap, location) {
+        const wholesaleSection = getWholesaleSectionName(location);
+        const defaultSection   = getDefaultSectionName(location);
+
+        return rows.map(row => {
+            const prod    = (getColumnValue(row, ['Product', 'product']) || "").toString().toLowerCase().trim();
+            const amt     = parseFloat(getColumnValue(row, ['Amount', 'amount']) || 0) || 0;
+            const spRaw   = (getColumnValue(row, ['Service Point', 'service_point', 'service point']) || "").toString().toLowerCase().trim();
+            const invNo   = (getColumnValue(row, ['Invoice No', 'Invoice_No', 'invoice_no']) || "").toString().trim() || `inv_${Math.random()}`;
+            const isManual = row.is_manual_entry === true;
+            const productNameRaw = getColumnValue(row, ['Product', 'product']) || "Generic";
+            const qty = getQtyValue(row);
+
+            // -------- classification flags (order of priority matters) --------
+            const pharmFlag  = isPharmacy(spRaw);
+            const liquorSP   = spRaw.includes('liquor');
+            const deliFlag   = isDeliBakeryProduct(prod);
+            const bulkFlag   = prod.includes('box') || prod.includes('outer') || prod.includes('bale');
+
+            // BC (Inventory Posting Group1) lookup – used only for LIQUOR detection
+            let bcGroup = null;
+            if(prod) {
+                for(let [desc, grp] of bcMap.entries()) {
+                    if(!desc) continue;
+                    if(prod.includes(desc) || desc.includes(prod)) { bcGroup = grp; break; }
                 }
             }
-            for (const name of possibleNames) {
-                const nLower = name.toLowerCase().trim();
-                for (const key of rowKeys) {
-                    const kLower = key.toLowerCase().trim();
-                    if (kLower.includes(nLower) || nLower.includes(kLower)) {
-                        if (row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
-                    }
-                }
+            const liquorBC = !!(bcGroup && String(bcGroup).toUpperCase().trim() === "WINES & SPIRITS");
+
+            // -------- NEW WHOLESALE RULE --------
+            // Qty >= 6 on the line  =>  wholesale, unless pharmacy / liquor / deli-bakery
+            const wholesaleQty = qty >= WHOLESALE_QTY_THRESHOLD;
+
+            let section;
+            if(isManual) {
+                section = defaultSection;
+            } else if(pharmFlag) {
+                section = "PHARMACY";
+            } else if(liquorSP || liquorBC) {
+                section = "LIQUOR";
+            } else if(location === 'katani') {
+                // Katani keeps its single WHOLESALE/RETAIL bucket (unchanged behaviour)
+                section = wholesaleSection;
+            } else if(deliFlag) {
+                section = "DELI/BAKERY";
+            } else if(wholesaleQty || bulkFlag) {
+                section = wholesaleSection;      // <-- qty >= 6 lands here
+            } else {
+                section = defaultSection;
             }
-            // Common aliases for Payment Mode specifically
-            if (possibleNames.some(n => n.toLowerCase().includes('payment'))) {
-                const pmAliases = ['payment mode', 'paymentmode', 'paymode', 'payment method', 'paymentmethod', 'pay_method',
-                    'pay method', 'pay_type', 'paytype'
-                ];
-                for (const key of rowKeys) {
-                    const kLower = key.toLowerCase().trim();
-                    for (const a of pmAliases) {
-                        if (kLower === a || kLower.includes(a) || a.includes(kLower)) {
-                            if (row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
-                        }
-                    }
-                }
+
+            // -------- final guards (highest priority, unchanged) --------
+            if(pharmFlag) section = "PHARMACY";
+            if(liquorSP)  section = "LIQUOR";
+
+            // -------- RUIRU MERGE GUARD --------
+            // Ruiru must never split Retail vs Wholesale — always one combined bucket.
+            if(location === 'ruiru' && (section === 'WHOLESALE' || section === 'RETAIL' || section === 'WHOLESALE/RETAIL')) {
+                section = 'WHOLESALE & RETAIL';
             }
-            return '';
+
+            return { ...row, amount: amt, invoiceNo: invNo, section, productName: productNameRaw, service_point: spRaw, qty };
+        });
+    }
+
+    function computeKPIsWithTopProducts(categorizedRows) {
+        const sectionsMap = new Map();
+        const globalInvoices = new Set();
+        const globalProductMap = new Map();
+        let globalTotal = 0;
+
+        for(const row of categorizedRows) {
+            const sec = row.section;
+            const amt = row.amount;
+            const inv = row.invoiceNo || row.invoice_no || getColumnValue(row, ['Invoice No', 'Invoice_No']);
+            const prodNameRaw = row.productName || row.product || getColumnValue(row, ['Product', 'product']) || "Unknown";
+
+            globalTotal += amt;
+            if(inv) globalInvoices.add(inv);
+            globalProductMap.set(prodNameRaw, (globalProductMap.get(prodNameRaw) || 0) + amt);
+
+            if(!sectionsMap.has(sec)) sectionsMap.set(sec, { totalSales:0, uniqueInvoices: new Set(), transactions:0, productMap: new Map() });
+            const stats = sectionsMap.get(sec);
+            stats.totalSales += amt;
+            if(inv) stats.uniqueInvoices.add(inv);
+            stats.transactions += 1;
+            stats.productMap.set(prodNameRaw, (stats.productMap.get(prodNameRaw) || 0) + amt);
         }
 
-        // ============================================================
-        // SERVICE POINT DETECTION
-        // ============================================================
-        function normalizeServicePoint(val) {
-            if (!val) return '';
-            return val.toString().toLowerCase().trim().replace(/\s+/g, ' ');
-        }
-
-        function isSyokimau(sp) {
-            const s = normalizeServicePoint(sp);
-            if (!s) return false;
-            if (s === 'syokimau retail' || s === 'syokimau deli' || s === 'syokimau pharmacy') return true;
-            if (s.includes('syokimau') || s.includes('syoki') || s.includes('syo')) return true;
-            return false;
-        }
-
-        function isRuiru(sp) {
-            const s = normalizeServicePoint(sp);
-            if (!s) return false;
-            if (s === 'ruiru retail' || s === 'ruiru') return true;
-            if (s.includes('ruiru')) return true;
-            return false;
-        }
-
-        // ============================================================
-        // BC MAP BUILDER
-        // ============================================================
-        function buildBCMap() {
-            const map = new Map();
-            if (!bcData || !bcData.length) return map;
-            for (const row of bcData) {
-                const desc = getColumnValue(row, ['Description', 'description', 'item description', 'product description']);
-                const inv = getColumnValue(row, ['Inventory Posting Group1', 'Inventory Posting Group',
-                    'inventory posting group1', 'posting group', 'inv posting group'
-                ]);
-                if (desc) {
-                    const key = desc.toString().toLowerCase().trim();
-                    map.set(key, inv || '');
-                    const key2 = key.replace(/\s+/g, ' ');
-                    if (key2 !== key) map.set(key2, inv || '');
-                }
-            }
-            debugLog('BC Map built: ' + map.size + ' entries');
-            return map;
-        }
-
-        // ============================================================
-        // DELI / BAKERY DETECTION
-        // ============================================================
-        function isDeliBakeryProduct(productName) {
-            const prod = (productName || '').toString().toLowerCase().trim();
-            if (!prod.startsWith('xana')) return false;
-            const excluded = ['sugar', 'water', 'rice'];
-            for (const term of excluded) {
-                if (prod.includes(term)) return false;
-            }
-            return true;
-        }
-
-        // ============================================================
-        // CONVERT MANUAL AMOUNTS TO ROWS
-        // ============================================================
-        function convertManualAmountsToRows(location, amountList) {
-            if (!amountList.length) return [];
-            return amountList.map((amount, idx) => {
-                const id = `MANUAL_${location}_${Date.now()}_${idx}_${Math.random().toString(36).substr(2,4)}`;
-                return {
-                    'Sale ID': id,
-                    'Product': `Manual Invoice ${idx+1}`,
-                    'Customer': 'Manual',
-                    'Service Point': location === 'syokimau' ? 'Syokimau Retail' : 'Ruiru Retail',
-                    'Station': '',
-                    'Invoice No': id,
-                    'Qty': 1,
-                    'Cashier': 'manual',
-                    'Status': 'Paid',
-                    'Price': parseFloat(amount) || 0,
-                    'Amount': parseFloat(amount) || 0,
-                    'Date': new Date().toISOString().split('T')[0],
-                    'Category': 'Retail',
-                    'Parent Category': '',
-                    'Tax Category': '',
-                    'Payment Mode': 'cash',
-                    'Unit Cost': 0,
-                    'Actual Cost': 0,
-                    'is_manual_entry': true,
-                    'manual_amount_only': true
-                };
+        const sectionsResult = [];
+        for(let [section, stats] of sectionsMap.entries()) {
+            const percent = globalTotal > 0 ? (stats.totalSales / globalTotal) * 100 : 0;
+            const topProducts = Array.from(stats.productMap.entries())
+                .map(([name, amtSum]) => ({ name, amount: amtSum }))
+                .sort((a,b) => b.amount - a.amount)
+                .slice(0,3);
+            sectionsResult.push({
+                section,
+                totalSales: stats.totalSales,
+                uniqueCustomers: stats.uniqueInvoices.size,
+                percentOfTotal: percent,
+                transactions: stats.transactions,
+                topProducts
             });
         }
 
-        // ============================================================
-        // CATEGORIZE ROWS (UNIFIED) – LIQUOR ONLY FROM BC MAPPING
-        // ============================================================
-        function categorizeRows(rows, bcMap, location) {
-            const result = [];
-            const bcKeys = Array.from(bcMap.keys());
+        const globalTopProducts = Array.from(globalProductMap.entries())
+            .map(([name, amount]) => ({ name, amount }))
+            .sort((a,b) => b.amount - a.amount)
+            .slice(0,3);
 
-            for (const row of rows) {
-                let prod = getColumnValue(row, ['Product', 'product', 'Item', 'item', 'Description', 'description']);
-                prod = (prod || '').toString();
-                const prodLower = prod.toLowerCase().trim();
-                const amt = parseFloat(getColumnValue(row, ['Amount', 'amount', 'Total', 'total', 'Sales Amount'])) || 0;
-                const spRaw = getColumnValue(row, ['Service Point', 'service_point', 'service point', 'Location',
-                    'location'
-                ]);
-                const spLower = normalizeServicePoint(spRaw);
-                const invNo = getColumnValue(row, ['Invoice No', 'Invoice_No', 'invoice_no', 'Invoice Number',
-                    'Invoice#'
-                ]) || `inv_${Math.random().toString(36).substr(2,6)}`;
-                const isManual = row.is_manual_entry === true;
-                const productNameRaw = prod || 'Generic';
+        return { sections: sectionsResult, overallTotal: globalTotal, totalUniqueCustomers: globalInvoices.size, globalTopProducts };
+    }
 
-                let section = location === 'syokimau' ? 'RETAIL' : 'WHOLESALE & RETAIL';
+    function getFilteredRowsWithManual(location, bcMap) {
+        let baseRows = salesData || [];
+        let filtered = [];
+        if(location === 'syokimau') {
+            filtered = baseRows.filter(r => isSyokimau(getColumnValue(r, ['Service Point', 'service_point', 'service point'])));
+        } else if(location === 'ruiru') {
+            filtered = baseRows.filter(r => isRuiru(getColumnValue(r, ['Service Point', 'service_point', 'service point'])));
+        } else if(location === 'katani') {
+            filtered = baseRows.filter(r => {
+                let sp = getColumnValue(r, ['Service Point', 'service_point', 'service point']);
+                return sp && sp.trim().toLowerCase() === 'katani retail';
+            });
+        }
+        let manualRows = [];
+        if(location === 'syokimau') manualRows = convertManualAmountsToRows('syokimau', syokimauManualAmounts);
+        else if(location === 'ruiru') manualRows = convertManualAmountsToRows('ruiru', ruiruManualAmounts);
+        else if(location === 'katani') manualRows = convertManualAmountsToRows('katani', kataniManualAmounts);
+        return [...filtered, ...manualRows];
+    }
 
-                // 1. Manual entries keep default
-                if (isManual) {
-                    section = location === 'syokimau' ? 'RETAIL' : 'WHOLESALE & RETAIL';
-                }
-                // 2. PHARMACY by service point or product keywords
-                else if (spLower.includes('pharmacy') || spLower.includes('drug') || spLower.includes('chemist')) {
-                    section = 'PHARMACY';
-                }
-                // 3. DELI/BAKERY: xana product detection
-                else if (isDeliBakeryProduct(prod)) {
-                    section = 'DELI/BAKERY';
-                }
-                // 4. WHOLESALE: detect box/outer/bale/case/carton/pallet/dozen/pack/bulk (excluding retail terms)
-                else if (/\b(box|outer|bale|case|carton|pallet|dozen|pack|bulk)\b/i.test(prodLower) &&
-                    !/retail|single|unit|each/i.test(prodLower)) {
-                    section = 'WHOLESALE';
-                }
-                // 5. LIQUOR: ONLY via BC mapping – VLOOKUP description against BC Description,
-                //    then check Inventory Posting Group1 for "WINES & SPIRITS"
-                else {
-                    let matchedGroup = null;
-                    // try exact match
-                    if (bcMap.has(prodLower)) {
-                        matchedGroup = bcMap.get(prodLower);
-                    } else {
-                        // try partial match (contains)
-                        for (const key of bcKeys) {
-                            if (prodLower.includes(key) || key.includes(prodLower)) {
-                                matchedGroup = bcMap.get(key);
-                                if (matchedGroup) break;
-                            }
-                        }
-                        // if not found, try word-level matching
-                        if (!matchedGroup) {
-                            const prodWords = prodLower.split(/\s+/).filter(w => w.length > 2);
-                            for (const key of bcKeys) {
-                                const keyWords = key.split(/\s+/).filter(w => w.length > 2);
-                                for (const pw of prodWords) {
-                                    for (const kw of keyWords) {
-                                        if (pw === kw || (pw.length > 3 && kw.length > 3 && (pw.includes(kw) || kw
-                                            .includes(pw)))) {
-                                            matchedGroup = bcMap.get(key);
-                                            if (matchedGroup) break;
-                                        }
-                                    }
-                                    if (matchedGroup) break;
-                                }
-                                if (matchedGroup) break;
-                            }
-                        }
-                    }
-                    if (matchedGroup) {
-                        const grpUpper = matchedGroup.toString().toUpperCase().trim();
-                        // Only LIQUOR if group is WINES & SPIRITS (or variations)
-                        if (grpUpper === 'WINES & SPIRITS' || grpUpper === 'WINES AND SPIRITS' ||
-                            grpUpper === 'WINE & SPIRITS' || grpUpper === 'WINE' || grpUpper === 'SPIRITS') {
-                            section = 'LIQUOR';
-                        } else if (grpUpper === 'PHARMACY' || grpUpper === 'PHARMACEUTICAL') {
-                            section = 'PHARMACY';
-                        } else if (grpUpper === 'DELI' || grpUpper === 'BAKERY') {
-                            section = 'DELI/BAKERY';
-                        } else if (grpUpper === 'WHOLESALE' || grpUpper === 'WHOLESALE & RETAIL') {
-                            section = location === 'syokimau' ? 'WHOLESALE' : 'WHOLESALE & RETAIL';
-                        }
-                    }
-                }
+    function processLocation(location) {
+        if(!bcLoaded) return null;
+        const bcMap = buildBCMap();
+        const rows = getFilteredRowsWithManual(location, bcMap);
+        if(rows.length === 0) return { sections: [], overallTotal: 0, totalUniqueCustomers: 0, globalTopProducts: [], rawCategorized: [] };
+        const categorized = categorizeRows(rows, bcMap, location);
+        const { sections, overallTotal, totalUniqueCustomers, globalTopProducts } = computeKPIsWithTopProducts(categorized);
+        return { sections, overallTotal, totalUniqueCustomers, globalTopProducts, rawCategorized: categorized };
+    }
 
-                // 6. PHARMACY override – service point can still force PHARMACY
-                if (spLower.includes('pharmacy') || spLower.includes('drug') || spLower.includes('chemist')) {
-                    section = 'PHARMACY';
-                }
-
-                // 7. Location-specific mapping for WHOLESALE vs WHOLESALE & RETAIL
-                if (location === 'ruiru' && section === 'WHOLESALE') {
-                    section = 'WHOLESALE & RETAIL';
-                }
-                if (location === 'syokimau' && section === 'WHOLESALE & RETAIL') {
-                    section = 'WHOLESALE';
-                }
-
+    // ----- DAILY SUMMARY: includes ALL branches + ALL pharmacies -----
+    function buildDailySummary() {
+        if(!salesData.length) return [];
+        const manualAll = [...convertManualAmountsToRows('syokimau', syokimauManualAmounts),
+                          ...convertManualAmountsToRows('ruiru', ruiruManualAmounts),
+                          ...convertManualAmountsToRows('katani', kataniManualAmounts)];
+        const combined = [...salesData, ...manualAll];
+        
+        const branchMap = new Map(); // branch -> dateMap
+        for(let row of combined) {
+            let sp = getColumnValue(row, ['Service Point', 'service_point', 'service point']) || '';
+            let branch = 'other';
+            // First check main branches
+            if(isSyokimau(sp)) branch = 'syokimau';
+            else if(isRuiru(sp)) branch = 'ruiru';
+            else if(isKatani(sp)) branch = 'katani';
+            // Any pharmacy (including main branches that have 'pharmacy' in name)
+            else if(isPharmacy(sp)) {
+                branch = sp.trim().toLowerCase().replace(/\s+/g, '_');
+            }
+            if(branch === 'other') continue;
+            
+            let amt = parseFloat(getColumnValue(row, ['Amount', 'amount']) || 0) || 0;
+            let inv = getColumnValue(row, ['Invoice No', 'Invoice_No', 'invoice_no']) || `inv_${Math.random()}`;
+            let payMode = getColumnValue(row, ['Payment Mode', 'Payment mode', 'payment_mode', 'payment mode']) || 'unknown';
+            let dateVal = getColumnValue(row, ['Date', 'date', 'DATE', 'Transaction Date']);
+            let parsedDate = parsePOSDate(dateVal);
+            let dateKey = parsedDate && !isNaN(parsedDate) ? formatDateKey(parsedDate) : 'unknown';
+            
+            if(!branchMap.has(branch)) branchMap.set(branch, new Map());
+            const dateMap = branchMap.get(branch);
+            if(!dateMap.has(dateKey)) dateMap.set(dateKey, { totalSales: 0, invoices: new Set(), payments: new Map() });
+            const dayData = dateMap.get(dateKey);
+            dayData.totalSales += amt;
+            dayData.invoices.add(inv);
+            const pm = dayData.payments;
+            pm.set(payMode, (pm.get(payMode) || 0) + amt);
+        }
+        
+        const result = [];
+        for(let [branch, dateMap] of branchMap.entries()) {
+            for(let [dateKey, data] of dateMap.entries()) {
                 result.push({
-                    ...row,
-                    amount: amt,
-                    invoiceNo: invNo,
-                    section: section,
-                    productName: productNameRaw,
-                    service_point: spLower,
-                    productLower: prodLower
+                    branch,
+                    date: dateKey,
+                    totalSales: data.totalSales,
+                    customerCount: data.invoices.size,
+                    payments: data.payments
                 });
             }
-            return result;
         }
+        result.sort((a,b) => a.date.localeCompare(b.date) || a.branch.localeCompare(b.branch));
+        return result;
+    }
 
-        // ============================================================
-        // COMPUTE KPI + TOP PRODUCTS
-        // ============================================================
-        function computeKPIsWithTopProducts(categorizedRows) {
-            const sectionsMap = new Map();
-            const globalInvoices = new Set();
-            let globalTotal = 0;
-
-            for (const row of categorizedRows) {
-                const sec = row.section || 'UNCATEGORIZED';
-                const amt = row.amount || 0;
-                const inv = row.invoiceNo || row.invoice_no || getColumnValue(row, ['Invoice No', 'Invoice_No',
-                    'invoice_no'
-                ]) || '';
-                const prodNameRaw = row.productName || row.product || getColumnValue(row, ['Product', 'product', 'Item',
-                    'item'
-                ]) || 'Unknown';
-                globalTotal += amt;
-                if (inv) globalInvoices.add(inv);
-
-                if (!sectionsMap.has(sec)) {
-                    sectionsMap.set(sec, { totalSales: 0, uniqueInvoices: new Set(), transactions: 0, productMap: new Map() });
-                }
-                const stats = sectionsMap.get(sec);
-                stats.totalSales += amt;
-                if (inv) stats.uniqueInvoices.add(inv);
-                stats.transactions += 1;
-                const currentProdTotal = stats.productMap.get(prodNameRaw) || 0;
-                stats.productMap.set(prodNameRaw, currentProdTotal + amt);
-            }
-
-            const sectionsResult = [];
-            for (const [section, stats] of sectionsMap.entries()) {
-                // Skip UNCATEGORIZED completely
-                if (section === 'UNCATEGORIZED') continue;
-                const percent = globalTotal > 0 ? (stats.totalSales / globalTotal) * 100 : 0;
-                const topProducts = Array.from(stats.productMap.entries())
-                    .map(([name, amtSum]) => ({ name, amount: amtSum }))
-                    .sort((a, b) => b.amount - a.amount)
-                    .slice(0, 3);
-                sectionsResult.push({
-                    section,
-                    totalSales: stats.totalSales,
-                    uniqueCustomers: stats.uniqueInvoices.size,
-                    percentOfTotal: percent,
-                    transactions: stats.transactions,
-                    topProducts
-                });
-            }
-
-            return {
-                sections: sectionsResult,
-                overallTotal: globalTotal,
-                totalUniqueCustomers: globalInvoices.size
-            };
+    // RENDER DAILY SUMMARY: all branches, payment methods as separate columns
+    function renderDailySummary() {
+        const container = document.getElementById('dailySummaryContainer');
+        dailySummaryData = buildDailySummary();
+        if(!dailySummaryData.length) {
+            container.innerHTML = `<div class="alert alert-info">No data to summarize. Upload sales file.</div>`;
+            return;
         }
-
-        // ============================================================
-        // FILTER ROWS BY LOCATION + APPEND MANUAL
-        // ============================================================
-        function getFilteredRowsWithManual(location) {
-            let baseRows = salesData || [];
-            let filtered = [];
-            for (const r of baseRows) {
-                const sp = getColumnValue(r, ['Service Point', 'service_point', 'service point', 'Location', 'location']);
-                if (location === 'syokimau') {
-                    if (isSyokimau(sp)) filtered.push(r);
-                } else {
-                    if (isRuiru(sp)) filtered.push(r);
-                }
-            }
-
-            let manualRows = [];
-            if (location === 'syokimau') manualRows = convertManualAmountsToRows('syokimau', syokimauManualAmounts);
-            else manualRows = convertManualAmountsToRows('ruiru', ruiruManualAmounts);
-
-            debugLog(`Filtered ${filtered.length} rows + ${manualRows.length} manual rows for ${location}`);
-            return [...filtered, ...manualRows];
+        
+        const dateMap = new Map();
+        for(let row of dailySummaryData) {
+            if(!dateMap.has(row.date)) dateMap.set(row.date, new Map());
+            const branchMap = dateMap.get(row.date);
+            branchMap.set(row.branch, { totalSales: row.totalSales, customerCount: row.customerCount, payments: row.payments });
         }
-
-        // ============================================================
-        // PROCESS LOCATION
-        // ============================================================
-        function processLocation(location) {
-            if (!bcLoaded) {
-                debugLog(`BC not loaded, cannot process ${location}`);
-                return null;
+        
+        const allBranchesSet = new Set();
+        for(let [date, branchMap] of dateMap.entries()) {
+            for(let [branch] of branchMap.entries()) {
+                allBranchesSet.add(branch);
             }
-            const bcMap = buildBCMap();
-            const rows = getFilteredRowsWithManual(location);
-            if (rows.length === 0) {
-                return { sections: [], overallTotal: 0, totalUniqueCustomers: 0, rawCategorized: [] };
-            }
-            const categorized = categorizeRows(rows, bcMap, location);
-            const { sections, overallTotal, totalUniqueCustomers } = computeKPIsWithTopProducts(categorized);
-            return { sections, overallTotal, totalUniqueCustomers, rawCategorized: categorized };
         }
-
-        // ============================================================
-        // RENDER DASHBOARD
-        // ============================================================
-        function renderLocationDashboard(containerId, locationName, result) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            if (!result || result.sections.length === 0) {
-                container.innerHTML =
-                    `<div class="alert alert-warning">No ${locationName} sales data found. Add manual amounts or upload file.</div>`;
-                return;
-            }
-
-            const { sections, overallTotal, totalUniqueCustomers } = result;
-            const colorMap = {
-                'WHOLESALE': '#2c5f2d',
-                'PHARMACY': '#1e88e5',
-                'LIQUOR': '#b23c1c',
-                'DELI/BAKERY': '#e67e22',
-                'RETAIL': '#6c757d',
-                'WHOLESALE & RETAIL': '#2c5f2d'
-            };
-
-            const ordered = locationName === 'Syokimau' ?
-                ['WHOLESALE', 'PHARMACY', 'LIQUOR', 'DELI/BAKERY', 'RETAIL'] :
-                ['PHARMACY', 'LIQUOR', 'DELI/BAKERY', 'WHOLESALE & RETAIL'];
-
-            const sectionMap = new Map(sections.map(s => [s.section, s]));
-
-            let html =
-                `<div class="card card-glass p-3 mb-3"><div class="d-flex justify-content-between flex-wrap align-items-center"><h3><i class="bi bi-geo-alt-fill"></i> ${locationName}</h3><div class="global-kpi-card" style="width:auto; padding:0.5rem 1.2rem;"><span class="global-kpi-number" style="font-size:1.4rem;">${formatCurrency(overallTotal)}</span><span class="global-kpi-label ms-2">Total Sales</span><br><span class="small">👥 ${totalUniqueCustomers} unique invoices</span></div></div></div>`;
-            html += `<div class="row g-3">`;
-
-            for (const secName of ordered) {
-                const sec = sectionMap.get(secName);
-                if (!sec) {
-                    html +=
-                        `<div class="col-md-6 col-lg-4"><div class="kpi-card-modern" style="border-bottom-color:#ccc;"><div class="kpi-title">${secName}</div><div class="kpi-value">KES 0</div><div class="stats-row">No data</div></div></div>`;
-                    continue;
-                }
-                const borderCol = colorMap[secName] || '#6c757d';
-                const percentVal = sec.percentOfTotal || 0;
-
-                let topHtml =
-                    `<div class="top-products-list"><div class="small fw-semibold mb-1">🏆 Top 3 Products</div>`;
-                if (!sec.topProducts || sec.topProducts.length === 0) {
-                    topHtml += `<div class="text-muted">—</div>`;
-                } else {
-                    for (let i = 0; i < Math.min(sec.topProducts.length, 3); i++) {
-                        const p = sec.topProducts[i];
-                        topHtml +=
-                            `<div class="top-product-item"><span class="badge bg-light text-dark me-1">${i+1}</span> <span class="product-name-trunc" title="${escapeHtml(p.name)}">${truncate(p.name,22)}</span> <span class="product-amt">${formatCurrency(p.amount)}</span></div>`;
+        const allBranches = Array.from(allBranchesSet).sort();
+        const sortedDates = Array.from(dateMap.keys()).sort();
+        
+        const allPayMethods = new Set();
+        for(let [date, branchMap] of dateMap.entries()) {
+            for(let [branch, data] of branchMap.entries()) {
+                if(data.payments) {
+                    for(let [method] of data.payments.entries()) {
+                        allPayMethods.add(method);
                     }
                 }
-                topHtml += `</div>`;
-
-                html += `<div class="col-md-6 col-lg-4"><div class="kpi-card-modern" style="border-bottom-color: ${borderCol};">
-                        <div class="kpi-title">${sec.section}</div>
-                        <div class="kpi-value">${formatCurrency(sec.totalSales)}</div>
-                        <div class="stats-row"><span><i class="bi bi-people"></i> ${sec.uniqueCustomers}</span><span>${percentVal.toFixed(1)}%</span><span><i class="bi bi-receipt"></i> ${sec.transactions}</span></div>
-                        <div class="section-progress"><div style="width:${Math.min(percentVal,100)}%; background:${borderCol}; height:5px;"></div></div>
-                        ${topHtml}
-                    </div></div>`;
             }
+        }
+        const payMethods = Array.from(allPayMethods).sort();
+        
+        let html = `<table class="table table-bordered table-striped table-hover daily-table"><thead>`;
+        html += `<tr><th rowspan="2" style="vertical-align:middle; background:#e9ecef;">Date</th>`;
+        html += `<th rowspan="2" style="vertical-align:middle; background:#e9ecef;">Branch</th>`;
+        html += `<th rowspan="2" style="vertical-align:middle; background:#e9ecef;">Sales (KES)</th>`;
+        html += `<th rowspan="2" style="vertical-align:middle; background:#e9ecef;">Customers</th>`;
+        for(let pm of payMethods) {
+            html += `<th class="sub-header payment-col">${pm}</th>`;
+        }
+        html += `</tr><tr>`;
+        html += `</tr></thead><tbody>`;
+        
+        for(let date of sortedDates) {
+            const branchMap = dateMap.get(date);
+            for(let branch of allBranches) {
+                const data = branchMap?.get(branch);
+                html += `<tr><td class="date-col">${formatDateDisplay(date)}</td>`;
+                let displayBranch = branch.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                html += `<td>${displayBranch}</td>`;
+                if(data) {
+                    html += `<td class="total-sales">${Math.round(data.totalSales).toLocaleString()}</td>`;
+                    html += `<td class="customer-count">${data.customerCount}</td>`;
+                    for(let pm of payMethods) {
+                        const amt = data.payments.get(pm) || 0;
+                        html += `<td>${Math.round(amt).toLocaleString()}</td>`;
+                    }
+                } else {
+                    html += `<td>—</td><td>—</td>`;
+                    for(let pm of payMethods) {
+                        html += `<td>0</td>`;
+                    }
+                }
+                html += `</tr>`;
+            }
+        }
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+    }
 
+    // Export daily summary to Excel (includes all branches)
+    function exportDailyToExcel() {
+        if(!dailySummaryData.length) { alert('No daily data to export.'); return; }
+        const dateMap = new Map();
+        for(let row of dailySummaryData) {
+            if(!dateMap.has(row.date)) dateMap.set(row.date, new Map());
+            const branchMap = dateMap.get(row.date);
+            branchMap.set(row.branch, { totalSales: row.totalSales, customerCount: row.customerCount, payments: row.payments });
+        }
+        const allBranchesSet = new Set();
+        for(let [date, branchMap] of dateMap.entries()) {
+            for(let [branch] of branchMap.entries()) {
+                allBranchesSet.add(branch);
+            }
+        }
+        const allBranches = Array.from(allBranchesSet).sort();
+        const sortedDates = Array.from(dateMap.keys()).sort();
+        
+        const allPayMethods = new Set();
+        for(let [date, branchMap] of dateMap.entries()) {
+            for(let [branch, data] of branchMap.entries()) {
+                if(data.payments) {
+                    for(let [method] of data.payments.entries()) {
+                        allPayMethods.add(method);
+                    }
+                }
+            }
+        }
+        const payMethods = Array.from(allPayMethods).sort();
+        
+        const rows = [];
+        for(let date of sortedDates) {
+            const branchMap = dateMap.get(date);
+            for(let branch of allBranches) {
+                const data = branchMap?.get(branch);
+                let displayBranch = branch.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                let rowObj = { Date: formatDateDisplay(date), Branch: displayBranch };
+                if(data) {
+                    rowObj['Sales'] = Math.round(data.totalSales);
+                    rowObj['Customers'] = data.customerCount;
+                    for(let pm of payMethods) {
+                        rowObj[pm] = Math.round(data.payments.get(pm) || 0);
+                    }
+                } else {
+                    rowObj['Sales'] = 0;
+                    rowObj['Customers'] = 0;
+                    for(let pm of payMethods) {
+                        rowObj[pm] = 0;
+                    }
+                }
+                rows.push(rowObj);
+            }
+        }
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, 'DailySummary');
+        XLSX.writeFile(wb, `daily_summary_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    // ------ RENDER MAIN DASHBOARD ------
+    function renderLocationDashboard(containerId, locationName, result) {
+        const container = document.getElementById(containerId);
+        if(!container) return;
+        if(!result || result.sections.length === 0) { 
+            container.innerHTML = `<div class="alert alert-warning">No ${locationName} data. Add manual amounts or upload file.</div>`; 
+            return; 
+        }
+        const { sections, overallTotal, totalUniqueCustomers } = result;
+        const dateRangeStr = formatDateRange(globalDateRange);
+
+        // ---------------- KATANI (single bucket card) ----------------
+        if(locationName === 'Katani') {
+            const topProducts = result.globalTopProducts || [];
+            const transactions = sections.reduce((sum, s) => sum + (s.transactions || 0), 0);
+            let html = `<div class="card card-glass p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <h3 class="mb-0"><i class="bi bi-geo-alt-fill"></i> Katani</h3>
+                                <div class="global-kpi-card branch-summary">
+                                    <span class="global-kpi-number">${formatCurrency(overallTotal)}</span>
+                                    <span class="global-kpi-label ms-2">Total Sales</span><br>
+                                    <span class="small">👥 ${totalUniqueCustomers} invoices</span><br>
+                                    <span class="small text-muted">${dateRangeStr}</span>
+                                </div>
+                            </div>
+                        </div>`;
+            html += `<div class="katani-total-card"><div class="kpi-title">WHOLESALE / RETAIL</div><div class="katani-total-number">${formatCurrency(overallTotal)}</div><div class="stats-row mt-2 justify-content-center"><span><i class="bi bi-people"></i> ${totalUniqueCustomers} customers</span><span><i class="bi bi-receipt"></i> ${transactions} transactions</span></div>`;
+            if(topProducts.length > 0) {
+                html += `<div class="top-products-list mt-3"><div class="small fw-semibold mb-1">🏆 Top 3 Products</div>`;
+                topProducts.forEach((p, idx) => {
+                    html += `<div class="top-product-item"><span class="badge bg-light text-dark">${idx+1}</span> <span class="product-name-trunc" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</span> <span class="product-amt">${formatCurrency(p.amount)}</span></div>`;
+                });
+                html += `</div>`;
+            }
             html += `</div>`;
             container.innerHTML = html;
+            return;
         }
 
-        // ============================================================
-        // RENDER COMPARISON VIEW
-        // ============================================================
-        function renderComparisonView(syoRes, ruiRes) {
-            const grid = document.getElementById('comparisonGrid');
-            if (!syoRes || !ruiRes) {
-                grid.innerHTML = `<div class="alert alert-info">Process both locations first.</div>`;
-                return;
+        // ---------------- SYOKIMAU / RUIRU ----------------
+        const colorMap = {
+            "WHOLESALE":"#2c5f2d",
+            "WHOLESALE & RETAIL":"#2c5f2d",
+            "WHOLESALE/RETAIL":"#2c5f2d",
+            "PHARMACY":"#1e88e5",
+            "LIQUOR":"#b23c1c",
+            "DELI/BAKERY":"#e67e22",
+            "RETAIL":"#6c757d"
+        };
+
+        // Ruiru never shows separate WHOLESALE / RETAIL — only the combined bucket.
+        const preferredOrder = locationName === "Syokimau"
+            ? ["WHOLESALE","PHARMACY","LIQUOR","DELI/BAKERY","RETAIL"]
+            : ["PHARMACY","LIQUOR","DELI/BAKERY","WHOLESALE & RETAIL"];
+
+        const sectionMap = new Map(sections.map(s => [s.section, s]));
+
+        // Only render cards that actually have data (no empty duplicate cards).
+        const ordered = preferredOrder.filter(s => sectionMap.has(s));
+        const extras = sections
+            .map(s => s.section)
+            .filter(s => !preferredOrder.includes(s) && !sectionMap.get(s)?.__merged)
+            .sort();
+        ordered.push(...extras);
+
+        let html = `<div class="card card-glass p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <h3 class="mb-0"><i class="bi bi-geo-alt-fill"></i> ${locationName}</h3>
+                            <div class="global-kpi-card branch-summary">
+                                <span class="global-kpi-number">${formatCurrency(overallTotal)}</span>
+                                <span class="global-kpi-label ms-2">Total Sales</span><br>
+                                <span class="small">👥 ${totalUniqueCustomers} invoices</span><br>
+                                <span class="small text-muted">${dateRangeStr}</span>
+                            </div>
+                        </div>
+                    </div>`;
+        html += `<div class="row g-3">`;
+
+        for(let secName of ordered) {
+            const sec = sectionMap.get(secName);
+            if(!sec) continue;
+
+            const borderCol = colorMap[secName] || "#6c757d";
+            const percentVal = sec.percentOfTotal;
+
+            let topHtml = `<div class="top-products-list"><div class="small fw-semibold mb-1">🏆 Top 3</div>`;
+            if(sec.topProducts.length === 0) topHtml += `<div class="text-muted">—</div>`;
+            else {
+                sec.topProducts.forEach((p, idx) => {
+                    topHtml += `<div class="top-product-item"><span class="badge bg-light text-dark">${idx+1}</span> <span class="product-name-trunc" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</span> <span class="product-amt">${formatCurrency(p.amount)}</span></div>`;
+                });
             }
-            const syoMap = new Map(syoRes.sections.map(s => [s.section, s]));
-            const ruiMap = new Map(ruiRes.sections.map(s => [s.section, s]));
+            topHtml += `</div>`;
 
-            const syoWholesale = syoMap.get('WHOLESALE') || { totalSales: 0, uniqueCustomers: 0, transactions: 0,
-                topProducts: [] };
-            const syoRetail = syoMap.get('RETAIL') || { totalSales: 0, uniqueCustomers: 0, transactions: 0,
-                topProducts: [] };
-            const syoCombined = {
-                totalSales: syoWholesale.totalSales + syoRetail.totalSales,
-                uniqueCustomers: (syoWholesale.uniqueCustomers || 0) + (syoRetail.uniqueCustomers || 0),
-                transactions: (syoWholesale.transactions || 0) + (syoRetail.transactions || 0),
-                topProducts: mergeTopProducts([syoWholesale.topProducts || [], syoRetail.topProducts || []])
-            };
-            const ruiCombined = ruiMap.get('WHOLESALE & RETAIL') || { totalSales: 0, uniqueCustomers: 0, transactions: 0,
-                topProducts: [] };
+            html += `<div class="col-12 col-sm-6 col-lg-4 col-xxl-3">
+                        <div class="kpi-card-modern" style="border-bottom-color: ${borderCol};">
+                            <div class="kpi-title">${escapeHtml(sec.section)}</div>
+                            <div class="kpi-value">${formatCurrency(sec.totalSales)}</div>
+                            <div class="stats-row">
+                                <span><i class="bi bi-people"></i> ${sec.uniqueCustomers}</span>
+                                <span>${percentVal.toFixed(1)}%</span>
+                                <span><i class="bi bi-receipt"></i> ${sec.transactions}</span>
+                            </div>
+                            <div class="section-progress"><div style="width:${Math.min(percentVal,100)}%; background:${borderCol}; height:5px;"></div></div>
+                            ${topHtml}
+                        </div>
+                     </div>`;
+        }
+        html += `</div>`;
+        container.innerHTML = html;
+    }
 
-            const categories = [
-                { name: 'PHARMACY', syo: syoMap.get('PHARMACY'), rui: ruiMap.get('PHARMACY'), color: '#1e88e5' },
-                { name: 'LIQUOR', syo: syoMap.get('LIQUOR'), rui: ruiMap.get('LIQUOR'), color: '#b23c1c' },
-                { name: 'DELI/BAKERY', syo: syoMap.get('DELI/BAKERY'), rui: ruiMap.get('DELI/BAKERY'),
-                    color: '#e67e22' },
-                { name: 'WHOLESALE & RETAIL (Syo: Wsale+Retail | Rui: Combined)', syo: syoCombined, rui: ruiCombined,
-                    color: '#2c5f2d' }
-            ];
-
-            let html = `<div class="row g-4">`;
-            for (const cat of categories) {
-                html += `<div class="col-12"><div class="card-glass p-3"><h5 class="fw-bold" style="border-left: 4px solid ${cat.color}; padding-left: 12px;">${cat.name}</h5>
-                        <div class="row g-3"><div class="col-md-6"><div class="bg-light p-3 rounded-3"><div class="fw-bold">Syokimau</div>
-                        <div class="kpi-value fs-4">${formatCurrency(cat.syo?.totalSales || 0)}</div>
-                        <div class="small">👥 ${cat.syo?.uniqueCustomers || 0} customers · ${cat.syo?.transactions || 0} invoices</div>
-                        ${renderTopProductsMini(cat.syo?.topProducts)}</div></div>
-                        <div class="col-md-6"><div class="bg-light p-3 rounded-3"><div class="fw-bold">Ruiru</div>
-                        <div class="kpi-value fs-4">${formatCurrency(cat.rui?.totalSales || 0)}</div>
-                        <div class="small">👥 ${cat.rui?.uniqueCustomers || 0} customers · ${cat.rui?.transactions || 0} invoices</div>
-                        ${renderTopProductsMini(cat.rui?.topProducts)}</div></div></div></div></div>`;
+    // ----- ALL PHARMACIES: captures EVERY service point with 'pharmacy' -----
+    function renderStandAlonePharmacies() {
+        const grid = document.getElementById('pharmacyGrid');
+        if(!bcLoaded || !salesData.length) { 
+            grid.innerHTML = `<div class="alert alert-info">Upload sales data and BC file to see pharmacy insights.</div>`; 
+            return; 
+        }
+        
+        // Get ALL rows that are pharmacy (including main branches)
+        const allRows = salesData.filter(r => isPharmacy(getColumnValue(r, ['Service Point', 'service_point', 'service point'])));
+        const manualAll = [...convertManualAmountsToRows('syokimau', syokimauManualAmounts), 
+                          ...convertManualAmountsToRows('ruiru', ruiruManualAmounts), 
+                          ...convertManualAmountsToRows('katani', kataniManualAmounts)];
+        const manualPharmacy = manualAll.filter(r => isPharmacy(r['service point'] || ''));
+        const combined = [...allRows, ...manualPharmacy];
+        
+        if(combined.length === 0) {
+            grid.innerHTML = `<div class="alert alert-warning">No pharmacy data found. Any service point containing "pharmacy" will appear here.</div>`;
+            return;
+        }
+        
+        const pharmacyMap = new Map();
+        for(let row of combined) {
+            let sp = getColumnValue(row, ['Service Point', 'service_point', 'service point']) || "Unknown Pharmacy";
+            let amt = parseFloat(getColumnValue(row, ['Amount', 'amount']) || 0) || 0;
+            let inv = getColumnValue(row, ['Invoice No', 'Invoice_No', 'invoice_no']) || `inv_${Math.random()}`;
+            let prod = getColumnValue(row, ['Product', 'product']) || "Unknown";
+            if(!pharmacyMap.has(sp)) pharmacyMap.set(sp, { totalSales:0, invoices: new Set(), products: new Map() });
+            let stats = pharmacyMap.get(sp);
+            stats.totalSales += amt;
+            stats.invoices.add(inv);
+            stats.products.set(prod, (stats.products.get(prod) || 0) + amt);
+        }
+        
+        // Include ALL pharmacies - no filtering out main branches
+        let filtered = [];
+        for(let [name, stats] of pharmacyMap.entries()) {
+            filtered.push({ name, ...stats });
+        }
+        
+        // Sort by name for consistent display
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        
+        let dateRangeStr = formatDateRange(globalDateRange);
+        let html = `<div class="row g-4"><div class="col-12"><div class="text-end small text-muted mb-2">📅 ${dateRangeStr}</div></div>`;
+        for(let pharm of filtered) {
+            const topProducts = Array.from(pharm.products.entries())
+                .map(([name, amt]) => ({ name, amount: amt }))
+                .sort((a,b) => b.amount - a.amount).slice(0,3);
+            const basketValue = pharm.invoices.size > 0 ? pharm.totalSales / pharm.invoices.size : 0;
+            
+            // Check if this is one of the main branches
+            const isMainBranch = isSyokimau(pharm.name) || isRuiru(pharm.name) || isKatani(pharm.name);
+            const mainBadge = isMainBranch ? '<span class="pharmacy-badge-main">Main</span>' : '';
+            
+            html += `<div class="col-12 col-sm-6 col-lg-4"><div class="pharmacy-card"><div class="d-flex justify-content-between align-items-center gap-2 flex-wrap"><h6 class="fw-bold mb-0">${escapeHtml(pharm.name)} ${mainBadge}</h6><span class="badge bg-primary">${pharm.invoices.size} customers</span></div><div class="kpi-value">${formatCurrency(pharm.totalSales)}</div><div class="small">Basket: ${formatCurrency(basketValue)}</div><div class="top-products-list mt-2"><div class="small fw-semibold">🏆 Top 3 SKU</div>`;
+            if(topProducts.length === 0) html += `<div class="text-muted">—</div>`;
+            else {
+                topProducts.forEach((p, idx) => {
+                    html += `<div class="top-product-item"><span class="badge bg-light text-dark">${idx+1}</span> <span class="product-name-trunc" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</span> <span class="product-amt">${formatCurrency(p.amount)}</span></div>`;
+                });
             }
-            html += `</div>
-                    <div class="mt-4 card-glass p-3"><h5>🏆 Overall Comparison</h5>
-                    <div class="row"><div class="col-6"><strong>Syokimau Total:</strong> ${formatCurrency(syoRes.overallTotal)}<br><span class="small">👥 ${syoRes.totalUniqueCustomers} unique invoices</span></div>
-                    <div class="col-6"><strong>Ruiru Total:</strong> ${formatCurrency(ruiRes.overallTotal)}<br><span class="small">👥 ${ruiRes.totalUniqueCustomers} unique invoices</span></div></div></div>`;
-            grid.innerHTML = html;
+            html += `</div></div></div>`;
         }
+        html += `</div>`;
+        grid.innerHTML = html;
+    }
 
-        function mergeTopProducts(productsArr) {
-            const mergedMap = new Map();
-            for (const arr of productsArr) {
-                if (!arr) continue;
-                for (const p of arr) {
-                    const cur = mergedMap.get(p.name) || 0;
-                    mergedMap.set(p.name, cur + p.amount);
-                }
+    function formatCurrency(val) { return new Intl.NumberFormat('en-KE', { style:'currency', currency:'KES', minimumFractionDigits:0, maximumFractionDigits:0 }).format(Math.round(val||0)); }
+    function escapeHtml(str) { if(str === null || str === undefined) return ''; return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+    function processAll() {
+        if(!bcLoaded) { alert("Please upload BC Master file first."); return; }
+        if(salesData.length) {
+            globalDateRange = extractDateRange(salesData);
+        }
+        syokimauProcessed = processLocation('syokimau');
+        ruiruProcessed = processLocation('ruiru');
+        kataniProcessed = processLocation('katani');
+        renderLocationDashboard('syokimauContainer', 'Syokimau', syokimauProcessed);
+        renderLocationDashboard('ruiruContainer', 'Ruiru', ruiruProcessed);
+        renderLocationDashboard('kataniContainer', 'Katani', kataniProcessed);
+        if(currentTab === 'standalone') renderStandAlonePharmacies();
+        if(currentTab === 'daily') renderDailySummary();
+    }
+
+    // Manual UI
+    function updateManualListsUI() {
+        ['syoManualList','ruiruManualList','kataniManualList'].forEach(id => {
+            let div = document.getElementById(id);
+            if(!div) return;
+            let arr = id === 'syoManualList' ? syokimauManualAmounts : id === 'ruiruManualList' ? ruiruManualAmounts : kataniManualAmounts;
+            let loc = id === 'syoManualList' ? 'syokimau' : id === 'ruiruManualList' ? 'ruiru' : 'katani';
+            if(arr.length === 0) div.innerHTML = '<span class="text-muted fst-italic">No entries</span>';
+            else {
+                div.innerHTML = arr.map((amt, idx) => `<div class="manual-amount-card d-flex justify-content-between align-items-center p-1"><span>${formatCurrency(amt)}</span><i class="bi bi-trash3 remove-manual" data-location="${loc}" data-idx="${idx}"></i></div>`).join('');
             }
-            return Array.from(mergedMap.entries()).map(([name, amount]) => ({ name, amount }))
-                .sort((a, b) => b.amount - a.amount).slice(0, 3);
-        }
-
-        function renderTopProductsMini(products) {
-            if (!products || products.length === 0) return `<div class="mt-2 small text-muted">No top products</div>`;
-            let html = `<div class="mt-2 small"><strong>🏆 Top 3:</strong><ul class="list-unstyled mb-0">`;
-            products.slice(0, 3).forEach(p => {
-                html +=
-                    `<li class="d-flex justify-content-between"><span>${truncate(p.name,20)}</span><span class="fw-bold">${formatCurrency(p.amount)}</span></li>`;
-            });
-            html += `</ul></div>`;
-            return html;
-        }
-
-        function truncate(str, len) { if (!str) return ''; return str.length > len ? str.substring(0, len - 2) + '..' : str; }
-
-        function formatCurrency(val) {
-            return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0,
-                maximumFractionDigits: 0 }).format(Math.round(val || 0));
-        }
-
-        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;',
-                '>': '&gt;' } [m])); }
-
-        // ============================================================
-        // PROCESS BOTH
-        // ============================================================
-        function processBoth() {
-            if (!bcLoaded) {
-                alert('Please upload BC Master file first.');
-                return;
-            }
-            debugLog('Processing both locations...');
-            syokimauProcessed = processLocation('syokimau');
-            ruiruProcessed = processLocation('ruiru');
-
-            renderLocationDashboard('syokimauContainer', 'Syokimau', syokimauProcessed);
-            renderLocationDashboard('ruiruContainer', 'Ruiru', ruiruProcessed);
-
-            if (currentMode === 'on') {
-                renderComparisonView(syokimauProcessed, ruiruProcessed);
-                document.getElementById('comparisonView').style.display = 'block';
-            } else {
-                document.getElementById('comparisonView').style.display = 'none';
-            }
-            debugLog('Processing complete.');
-        }
-
-        // ============================================================
-        // MANUAL ENTRIES UI
-        // ============================================================
-        function updateManualListsUI() {
-            const syoDiv = document.getElementById('syoManualList');
-            if (syokimauManualAmounts.length === 0) {
-                syoDiv.innerHTML = '<div class="text-muted fst-italic">No manual entries yet.</div>';
-            } else {
-                syoDiv.innerHTML = syokimauManualAmounts.map((amt, idx) =>
-                    `<div class="manual-amount-card d-flex justify-content-between align-items-center"><div><i class="bi bi-receipt"></i> <strong>#${idx+1}</strong> ${formatCurrency(amt)}</div><i class="bi bi-trash3 remove-manual" data-location="syokimau" data-idx="${idx}"></i></div>`
-                ).join('');
-            }
-
-            const ruiDiv = document.getElementById('ruiruManualList');
-            if (ruiruManualAmounts.length === 0) {
-                ruiDiv.innerHTML = '<div class="text-muted fst-italic">No manual entries yet.</div>';
-            } else {
-                ruiDiv.innerHTML = ruiruManualAmounts.map((amt, idx) =>
-                    `<div class="manual-amount-card d-flex justify-content-between align-items-center"><div><i class="bi bi-receipt"></i> <strong>#${idx+1}</strong> ${formatCurrency(amt)}</div><i class="bi bi-trash3 remove-manual" data-location="ruiru" data-idx="${idx}"></i></div>`
-                ).join('');
-            }
-
-            document.querySelectorAll('.remove-manual').forEach(el => {
-                el.removeEventListener('click', handleManualDelete);
-                el.addEventListener('click', handleManualDelete);
-            });
-        }
-
-        function handleManualDelete(e) {
-            const target = e.currentTarget;
-            const location = target.getAttribute('data-location');
-            const idx = parseInt(target.getAttribute('data-idx'));
-            if (location === 'syokimau') syokimauManualAmounts.splice(idx, 1);
-            else ruiruManualAmounts.splice(idx, 1);
-            updateManualListsUI();
-            if (bcLoaded) processBoth();
-        }
-
-        function addManualAmount(location) {
-            const input = location === 'syokimau' ? document.getElementById('syoManualAmount') : document.getElementById(
-                'ruiruManualAmount');
-            const amt = parseFloat(input.value);
-            if (isNaN(amt) || amt <= 0) { alert('Enter a valid positive amount (KES).'); return; }
-            if (location === 'syokimau') {
-                syokimauManualAmounts.push(amt);
-                document.getElementById('syoManualAmount').value = '';
-            } else {
-                ruiruManualAmounts.push(amt);
-                document.getElementById('ruiruManualAmount').value = '';
-            }
-            updateManualListsUI();
-            if (bcLoaded) processBoth();
-            else alert(`Manual amount ${formatCurrency(amt)} saved. Upload BC file to analyze.`);
-        }
-
-        // ============================================================
-        // MODE TOGGLE
-        // ============================================================
-        function setMode(mode) {
-            currentMode = mode;
-            const stdView = document.getElementById('standardView');
-            const compView = document.getElementById('comparisonView');
-            if (mode === 'off') {
-                stdView.style.display = 'block';
-                compView.style.display = 'none';
-                document.querySelectorAll('.comparison-mode-off').forEach(el => el.classList.add('comparison-active'));
-                document.querySelectorAll('.comparison-mode-on').forEach(el => el.classList.remove('comparison-active'));
-            } else {
-                stdView.style.display = 'none';
-                compView.style.display = 'block';
-                if (syokimauProcessed && ruiruProcessed) renderComparisonView(syokimauProcessed, ruiruProcessed);
-                document.querySelectorAll('.comparison-mode-on').forEach(el => el.classList.add('comparison-active'));
-                document.querySelectorAll('.comparison-mode-off').forEach(el => el.classList.remove('comparison-active'));
-            }
-            debugLog('Mode: ' + mode);
-        }
-
-        // ============================================================
-        // RESET ALL
-        // ============================================================
-        function resetAll() {
-            salesData = [];
-            bcData = [];
-            salesLoaded = false;
-            bcLoaded = false;
-            syokimauManualAmounts = [];
-            ruiruManualAmounts = [];
-            syokimauProcessed = null;
-            ruiruProcessed = null;
-            filteredOutCount = 0;
-            debugLines = [];
-            document.getElementById('salesFileName').innerText = '';
-            document.getElementById('bcFileName').innerText = '';
-            document.getElementById('salesFileInput').value = '';
-            document.getElementById('bcFileInput').value = '';
-            document.getElementById('salesDebug').innerText = '';
-            document.getElementById('bcDebug').innerText = '';
-            document.getElementById('salesFilterStats').style.display = 'none';
-            document.getElementById('salesFilterStats').innerHTML = '';
-            document.getElementById('syokimauContainer').innerHTML =
-                '<div class="alert alert-secondary">Upload files & add manual amounts, then click "Analyze Both"</div>';
-            document.getElementById('ruiruContainer').innerHTML =
-                '<div class="alert alert-secondary">Upload files & add manual amounts</div>';
-            document.getElementById('comparisonGrid').innerHTML = '';
-            document.getElementById('comparisonView').style.display = 'none';
-            document.getElementById('standardView').style.display = 'block';
-            currentMode = 'off';
-            updateManualListsUI();
-            document.querySelectorAll('.comparison-mode-off').forEach(el => el.classList.add('comparison-active'));
-            document.querySelectorAll('.comparison-mode-on').forEach(el => el.classList.remove('comparison-active'));
-            if (debugEnabled) {
-                const el = document.getElementById('debugLog');
-                if (el) el.textContent = '🔄 Reset complete.';
-            }
-            debugLog('Reset complete');
-        }
-
-        // ============================================================
-        // FILE HANDLERS
-        // ============================================================
-        function setupUploadZone(zone, fileInput, onLoadCallback, fileNameSpan, debugSpan, isSales = false) {
-            zone.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', (e) => {
-                const f = e.target.files[0];
-                if (f) {
-                    fileNameSpan.innerText = `📄 ${f.name}`;
-                    parseExcel(f, onLoadCallback, debugSpan, isSales);
-                }
-            });
-            zone.addEventListener('dragover', (e) => { e.preventDefault();
-                zone.style.background = '#e9ecef'; });
-            zone.addEventListener('dragleave', () => { zone.style.background = '#fefefe'; });
-            zone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                zone.style.background = '#fefefe';
-                const f = e.dataTransfer.files[0];
-                if (f) {
-                    const ext = f.name.split('.').pop().toLowerCase();
-                    const valid = ['xlsx', 'xls', 'xlsm', 'xlsb', 'csv'];
-                    if (valid.includes(ext)) {
-                        fileInput.files = e.dataTransfer.files;
-                        fileNameSpan.innerText = `📄 ${f.name}`;
-                        parseExcel(f, onLoadCallback, debugSpan, isSales);
-                    } else {
-                        alert('Please upload an Excel or CSV file.');
-                    }
-                }
-            });
-        }
-
-        function parseExcel(file, callback, debugSpan, isSales = false) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const wb = XLSX.read(data, { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd' });
-                    const sheet = wb.Sheets[wb.SheetNames[0]];
-                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-                    const colInfo = rows.length ? Object.keys(rows[0]).join(', ') : 'none';
-
-                    if (debugSpan) {
-                        debugSpan.innerText = `📊 ${rows.length} rows. Columns: ${colInfo}`;
-                    }
-                    debugLog(`Loaded ${rows.length} rows from ${file.name}`);
-
-                    // ---- SALES FILE: filter out rows with empty Payment Mode ----
-                    if (isSales && rows.length > 0) {
-                        // check if Payment Mode column exists
-                        const sample = rows[0];
-                        const pmVal = getColumnValue(sample, ['Payment Mode', 'payment mode', 'payment_mode',
-                            'PaymentMode', 'Payment Method', 'payment method', 'paymode', 'pay_mode'
-                        ]);
-                        const hasPaymentModeCol = pmVal !== '' || Object.keys(sample).some(k =>
-                            /payment\s*mode|paymode|paymentmethod|payment_method/i.test(k)
-                        );
-
-                        if (hasPaymentModeCol) {
-                            const filtered = rows.filter(row => {
-                                const pm = getColumnValue(row, ['Payment Mode', 'payment mode', 'payment_mode',
-                                    'PaymentMode', 'Payment Method', 'payment method', 'paymode',
-                                    'pay_mode'
-                                ]);
-                                return pm && pm.toString().trim() !== '';
-                            });
-                            filteredOutCount = rows.length - filtered.length;
-                            if (debugSpan) {
-                                debugSpan.innerText =
-                                    `📊 ${rows.length} rows → ${filtered.length} kept (${filteredOutCount} removed: empty Payment Mode). Columns: ${colInfo}`;
-                            }
-                            debugLog(`Payment Mode filter: ${filteredOutCount} rows removed, ${filtered.length} kept`);
-
-                            // show filter stats
-                            const statsEl = document.getElementById('salesFilterStats');
-                            if (statsEl) {
-                                statsEl.style.display = 'inline-flex';
-                                statsEl.innerHTML =
-                                    `<span class="badge-kept">✅ Kept: ${filtered.length}</span> <span class="badge-filtered">⛔ Filtered: ${filteredOutCount}</span> <span class="text-muted small">(empty Payment Mode removed)</span>`;
-                            }
-                            callback(filtered);
-                        } else {
-                            // No Payment Mode column — process all rows with a warning
-                            if (debugSpan) {
-                                debugSpan.innerText =
-                                    `⚠️ No "Payment Mode" column found. All ${rows.length} rows processed. Columns: ${colInfo}`;
-                            }
-                            debugLog(`No Payment Mode column — processing all ${rows.length} rows`);
-                            const statsEl = document.getElementById('salesFilterStats');
-                            if (statsEl) {
-                                statsEl.style.display = 'inline-flex';
-                                statsEl.innerHTML =
-                                    `<span class="badge-kept">✅ All ${rows.length} rows</span> <span class="text-muted small">(no Payment Mode column)</span>`;
-                            }
-                            callback(rows);
-                        }
-                    } else {
-                        // BC file or no rows
-                        callback(rows);
-                    }
-                } catch (err) {
-                    if (debugSpan) debugSpan.innerText = `❌ Error: ${err.message}`;
-                    alert(`Error reading file: ${err.message}`);
-                }
-            };
-            reader.onerror = () => {
-                if (debugSpan) debugSpan.innerText = '❌ Error reading file';
-                alert('Error reading file');
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function onSalesLoaded(rows) {
-            salesData = rows;
-            salesLoaded = true;
-            debugLog(`Sales data ready: ${rows.length} rows after filtering`);
-            if (bcLoaded) processBoth();
-        }
-
-        function onBCLoaded(rows) {
-            bcData = rows;
-            bcLoaded = true;
-            debugLog(`BC data ready: ${rows.length} rows`);
-            if (rows.length > 0) {
-                const sample = rows[0];
-                const keys = Object.keys(sample);
-                debugLog(`BC columns: ${keys.join(', ')}`);
-                const desc = getColumnValue(sample, ['Description', 'description']);
-                const inv = getColumnValue(sample, ['Inventory Posting Group1', 'Inventory Posting Group']);
-                debugLog(`BC sample: desc="${desc}", inv="${inv}"`);
-            }
-            processBoth();
-        }
-
-        // ============================================================
-        // INIT
-        // ============================================================
-        setupUploadZone(
-            document.getElementById('salesUploadZone'),
-            document.getElementById('salesFileInput'),
-            onSalesLoaded,
-            document.getElementById('salesFileName'),
-            document.getElementById('salesDebug'),
-            true // isSales
-        );
-
-        setupUploadZone(
-            document.getElementById('bcUploadZone'),
-            document.getElementById('bcFileInput'),
-            onBCLoaded,
-            document.getElementById('bcFileName'),
-            document.getElementById('bcDebug'),
-            false // isSales
-        );
-
-        document.getElementById('processBothBtn').addEventListener('click', processBoth);
-        document.getElementById('resetDataBtn').addEventListener('click', resetAll);
-        document.getElementById('addSyoManualBtn').addEventListener('click', () => addManualAmount('syokimau'));
-        document.getElementById('addRuiruManualBtn').addEventListener('click', () => addManualAmount('ruiru'));
-
-        document.querySelectorAll('.comparison-mode-off').forEach(el => el.addEventListener('click', () => setMode('off')));
-        document.querySelectorAll('.comparison-mode-on').forEach(el => el.addEventListener('click', () => setMode('on')));
-
+        });
+        document.querySelectorAll('.remove-manual').forEach(el => {
+            el.removeEventListener('click', handleManualDelete);
+            el.addEventListener('click', handleManualDelete);
+        });
+    }
+    function handleManualDelete(e) {
+        const target = e.currentTarget;
+        const location = target.getAttribute('data-location');
+        const idx = parseInt(target.getAttribute('data-idx'));
+        if(location === 'syokimau') syokimauManualAmounts.splice(idx, 1);
+        else if(location === 'ruiru') ruiruManualAmounts.splice(idx, 1);
+        else if(location === 'katani') kataniManualAmounts.splice(idx, 1);
         updateManualListsUI();
-        resetAll();
+        if(bcLoaded) processAll();
+    }
+    function addManualAmount(location) {
+        let input = location === 'syokimau' ? document.getElementById('syoManualAmount') : location === 'ruiru' ? document.getElementById('ruiruManualAmount') : document.getElementById('kataniManualAmount');
+        let amt = parseFloat(input.value);
+        if(isNaN(amt) || amt <= 0) { alert("Enter a valid positive amount."); return; }
+        if(location === 'syokimau') syokimauManualAmounts.push(amt);
+        else if(location === 'ruiru') ruiruManualAmounts.push(amt);
+        else kataniManualAmounts.push(amt);
+        input.value = '';
+        updateManualListsUI();
+        if(bcLoaded) processAll();
+    }
 
-        debugLog('🚀 Ready. Upload BC and Sales files (any Excel/CSV). Empty Payment Mode rows are auto-filtered.');
-        debugLog('💡 Press Ctrl+Shift+D for debug panel.');
-    </script>
+    function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('mainDashboard').style.display = tab === 'main' ? 'block' : 'none';
+        document.getElementById('standAloneView').style.display = tab === 'standalone' ? 'block' : 'none';
+        document.getElementById('dailyView').style.display = tab === 'daily' ? 'block' : 'none';
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
+        if(tab === 'main') document.getElementById('tabMain').classList.add('active-tab');
+        else if(tab === 'standalone') document.getElementById('tabStandAlone').classList.add('active-tab');
+        else if(tab === 'daily') document.getElementById('tabDaily').classList.add('active-tab');
+        if(tab === 'standalone' && bcLoaded) renderStandAlonePharmacies();
+        if(tab === 'daily' && bcLoaded) renderDailySummary();
+    }
+
+    function resetAll() {
+        salesData = []; bcData = []; salesLoaded = false; bcLoaded = false;
+        syokimauManualAmounts = []; ruiruManualAmounts = []; kataniManualAmounts = [];
+        syokimauProcessed = null; ruiruProcessed = null; kataniProcessed = null;
+        globalDateRange = { min: null, max: null };
+        dailySummaryData = [];
+        document.getElementById('salesFileName').innerText = ""; document.getElementById('bcFileName').innerText = "";
+        document.getElementById('salesFileInput').value = ""; document.getElementById('bcFileInput').value = "";
+        ['syokimauContainer','ruiruContainer','kataniContainer'].forEach(id => document.getElementById(id).innerHTML = '<div class="alert alert-secondary">Upload & analyze</div>');
+        document.getElementById('pharmacyGrid').innerHTML = '';
+        document.getElementById('dailySummaryContainer').innerHTML = '';
+        updateManualListsUI();
+        switchTab('main');
+    }
+
+    // File handlers
+    function setupUploadZone(zone, fileInput, onLoadCallback, fileNameSpan) {
+        zone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => { const f = e.target.files[0]; if(f){ fileNameSpan.innerText = `📄 ${f.name}`; parseExcel(f, onLoadCallback); } });
+        zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.style.background = "#e9ecef"; });
+        zone.addEventListener('dragleave', () => { zone.style.background = "#fefefe"; });
+        zone.addEventListener('drop', (e) => { e.preventDefault(); zone.style.background = "#fefefe"; const f = e.dataTransfer.files[0]; if(f && (f.name.endsWith('.xlsx')||f.name.endsWith('.xls'))) { fileInput.files = e.dataTransfer.files; fileNameSpan.innerText = `📄 ${f.name}`; parseExcel(f, onLoadCallback); } else alert("Excel file required"); });
+    }
+    function parseExcel(file, callback) { const reader = new FileReader(); reader.onload = (e) => { const data = new Uint8Array(e.target.result); const wb = XLSX.read(data, { type: 'array' }); const sheet = wb.Sheets[wb.SheetNames[0]]; const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }); callback(rows); }; reader.readAsArrayBuffer(file); }
+    function onSalesLoaded(rows) { salesData = rows; salesLoaded = true; if(bcLoaded) processAll(); }
+    function onBCLoaded(rows) { bcData = rows; bcLoaded = true; processAll(); }
+
+    // Init
+    setupUploadZone(document.getElementById('salesUploadZone'), document.getElementById('salesFileInput'), onSalesLoaded, document.getElementById('salesFileName'));
+    setupUploadZone(document.getElementById('bcUploadZone'), document.getElementById('bcFileInput'), onBCLoaded, document.getElementById('bcFileName'));
+    document.getElementById('processBothBtn').addEventListener('click', processAll);
+    document.getElementById('resetDataBtn').addEventListener('click', resetAll);
+    document.getElementById('exportDailyBtn').addEventListener('click', exportDailyToExcel);
+    document.getElementById('addSyoManualBtn').addEventListener('click', () => addManualAmount('syokimau'));
+    document.getElementById('addRuiruManualBtn').addEventListener('click', () => addManualAmount('ruiru'));
+    document.getElementById('addKataniManualBtn').addEventListener('click', () => addManualAmount('katani'));
+    document.getElementById('tabMain').addEventListener('click', () => switchTab('main'));
+    document.getElementById('tabStandAlone').addEventListener('click', () => switchTab('standalone'));
+    document.getElementById('tabDaily').addEventListener('click', () => switchTab('daily'));
+    updateManualListsUI();
+    switchTab('main');
+</script>
 </body>
 </html>
