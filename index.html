@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Branch Sales</title>
+    <title>Syokimau · Ruiru · Katani · Pharmacies</title>
     <!-- Bootstrap 5 + Icons + Custom Font -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -17,7 +17,7 @@
         .upload-zone { border: 2px dashed #cbd5e1; border-radius: 1.5rem; background: #fefefe; transition: all 0.2s; cursor: pointer; }
         .upload-zone:hover { background-color: #f1f5f9; border-color: #1A4A5F; }
 
-        /* ---------- KPI CARDS (resized, no overlap) ---------- */
+        /* ---------- KPI CARDS ---------- */
         .kpi-card-modern {
             background: #fff;
             border-radius: 1.25rem;
@@ -63,7 +63,6 @@
         .global-kpi-card { background: linear-gradient(145deg, #ffffff, #fefefe); border-radius: 1.8rem; padding: 1rem 0.8rem; text-align: center; box-shadow: 0 12px 24px rgba(0,0,0,0.05); border-bottom: 4px solid #1A4A5F; height: 100%; }
         .global-kpi-number { font-size: 1.8rem; font-weight: 800; color: #0B2B40; line-height: 1.15; }
 
-        /* compact branch summary chip in the branch header */
         .branch-summary {
             width: auto;
             min-width: 210px;
@@ -74,9 +73,8 @@
         .branch-summary .global-kpi-number { font-size: 1.35rem; }
 
         .btn-custom-primary { background: #1A4A5F; border-radius: 2rem; padding: 0.5rem 1.2rem; font-weight: 500; color: white; border: none; }
-        .btn-ruiru { background: #8B4513; border-radius: 2rem; padding: 0.5rem 1.2rem; font-weight: 500; color: white; }
 
-        /* ---------- TOP PRODUCTS (fixed truncation, no overlap) ---------- */
+        /* ---------- TOP PRODUCTS ---------- */
         .top-products-list { font-size: 0.72rem; margin-top: 10px; border-top: 1px solid #e9ecef; padding-top: 8px; }
         .top-product-item { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; min-width: 0; }
         .top-product-item .badge { flex: 0 0 auto; }
@@ -90,29 +88,23 @@
         }
         .product-amt { flex: 0 0 auto; font-weight: 600; color: #0f172a; white-space: nowrap; }
 
-        .manual-card { background: #fef9e6; border-left: 6px solid #f4b942; }
-        .manual-amount-card { background: #fff7e6; border-radius: 1rem; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #f4b942; }
         .pharmacy-card { background: white; border-radius: 1.2rem; padding: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border-left: 5px solid #1e88e5; height: 100%; min-width: 0; }
         .tab-btn { border-radius: 2rem; padding: 0.4rem 1.2rem; font-weight: 500; border: none; background: #f1f5f9; transition: all 0.2s; }
         .tab-btn.active-tab { background: #0B2B40; color: white; }
         .katani-total-card { background: linear-gradient(145deg, #ffffff, #fafafa); border-radius: 1.8rem; padding: 1.5rem 1rem; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-bottom: 4px solid #2c5f2d; }
         .katani-total-number { font-size: 2.6rem; font-weight: 800; color: #0B2B40; word-break: break-word; }
         .table-wrap { overflow-x: auto; }
-        .pay-method-badge { background: #e9ecef; border-radius: 20px; padding: 0.2rem 0.6rem; font-size: 0.7rem; margin: 0 2px; display: inline-block; }
         .export-btn { background: #28a745; border: none; border-radius: 2rem; padding: 0.5rem 1.5rem; color: white; font-weight: 500; }
         .daily-table th, .daily-table td { vertical-align: middle; text-align: center; padding: 0.4rem 0.3rem; font-size: 0.8rem; }
         .daily-table .branch-header { background: #f1f5f9; font-weight: 700; }
         .daily-table .date-col { font-weight: 600; background: #fafafa; }
-        .daily-table .pay-detail { font-size: 0.7rem; color: #495057; }
         .daily-table .total-sales { font-weight: 700; color: #0B2B40; }
         .daily-table .customer-count { font-weight: 500; }
         .daily-table .sub-header { background: #e9ecef; font-weight: 600; font-size: 0.7rem; }
         .payment-col { min-width: 80px; }
         .section-progress { height: 5px; background: #e9ecef; border-radius: 4px; overflow: hidden; margin-top: 8px; }
         .pharmacy-badge-main { background: #0B2B40; color: white; font-size: 0.6rem; padding: 0.15rem 0.5rem; border-radius: 12px; margin-left: 6px; }
-        .rule-pill { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35); border-radius: 20px; padding: 0.15rem 0.7rem; font-size: 0.7rem; display: inline-block; margin: 0.15rem 0.15rem 0 0; }
 
-        /* branch section wrapper spacing */
         .branch-block { margin-bottom: 0.5rem; }
 
         @media (max-width: 768px) {
@@ -128,55 +120,17 @@
 <div class="gradient-header mb-4">
     <div class="container">
         <div class="d-flex align-items-center justify-content-between flex-wrap">
-            <div><h1 class="display-6 fw-bold"><i class="bi bi-graph-up"></i> Branch sales</h1><p class="mb-0 opacity-75"></p></div>
+            <div><h1 class="display-6 fw-bold"><i class="bi bi-graph-up"></i> Syokimau · Ruiru · Katani</h1></div>
             <div><i class="bi bi-pencil-square fs-1"></i></div>
         </div>
-        
     </div>
 </div>
 
 <div class="container">
     <!-- File upload row -->
     <div class="row g-4 mb-4">
-        <div class="col-md-6"><div class="card card-glass h-100 p-3"><div class="card-body"><h5 class="fw-bold"><i class="bi bi-receipt"></i> Sales File (Excel)</h5><div class="upload-zone p-3 text-center" id="salesUploadZone"><i class="bi bi-cloud-upload fs-1"></i><p class="mb-0">Click or drag .xlsx</p><input type="file" id="salesFileInput" class="d-none" /><div id="salesFileName" class="small text-success mt-1"></div></div></div></div></div>
-        <div class="col-md-6"><div class="card card-glass h-100 p-3"><div class="card-body"><h5 class="fw-bold"><i class="bi bi-database"></i> BC Master File</h5><div class="upload-zone p-3 text-center" id="bcUploadZone"><i class="bi bi-file-spreadsheet fs-1"></i><p class="mb-0">Upload BC (Description + Inventory Posting Group1)</p><input type="file" id="bcFileInput" class="d-none" /><div id="bcFileName" class="small text-success mt-1"></div></div></div></div></div>
-    </div>
-
-    <!-- MANUAL INVOICES: AMOUNTS ONLY -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card card-glass p-3 manual-card">
-                <h5 class="fw-bold"><i class="bi bi-pencil-square"></i> Manual – Syokimau</h5>
-                <div class="input-group mb-2">
-                    <span class="input-group-text">KES</span>
-                    <input type="number" id="syoManualAmount" class="form-control" placeholder="Amount" step="any">
-                    <button class="btn btn-custom-primary" id="addSyoManualBtn"><i class="bi bi-plus-circle"></i></button>
-                </div>
-                <div id="syoManualList" class="mt-1 small"></div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card card-glass p-3 manual-card">
-                <h5 class="fw-bold"><i class="bi bi-pencil-square"></i> Manual – Ruiru</h5>
-                <div class="input-group mb-2">
-                    <span class="input-group-text">KES</span>
-                    <input type="number" id="ruiruManualAmount" class="form-control" placeholder="Amount" step="any">
-                    <button class="btn btn-ruiru" id="addRuiruManualBtn"><i class="bi bi-plus-circle"></i></button>
-                </div>
-                <div id="ruiruManualList" class="mt-1 small"></div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card card-glass p-3 manual-card">
-                <h5 class="fw-bold"><i class="bi bi-pencil-square"></i> Manual – Katani</h5>
-                <div class="input-group mb-2">
-                    <span class="input-group-text">KES</span>
-                    <input type="number" id="kataniManualAmount" class="form-control" placeholder="Amount" step="any">
-                    <button class="btn btn-success" id="addKataniManualBtn"><i class="bi bi-plus-circle"></i></button>
-                </div>
-                <div id="kataniManualList" class="mt-1 small"></div>
-            </div>
-        </div>
+        <div class="col-md-6"><div class="card card-glass h-100 p-3"><div class="card-body"><h5 class="fw-bold"><i class="bi bi-receipt"></i> Sales File (Excel)</h5><div class="upload-zone p-3 text-center" id="salesUploadZone"><i class="bi bi-cloud-upload fs-1"></i><input type="file" id="salesFileInput" class="d-none" /><div id="salesFileName" class="small text-success mt-1"></div></div></div></div></div>
+        <div class="col-md-6"><div class="card card-glass h-100 p-3"><div class="card-body"><h5 class="fw-bold"><i class="bi bi-database"></i> BC Master File</h5><div class="upload-zone p-3 text-center" id="bcUploadZone"><i class="bi bi-file-spreadsheet fs-1"></i><input type="file" id="bcFileInput" class="d-none" /><div id="bcFileName" class="small text-success mt-1"></div></div></div></div></div>
     </div>
 
     <!-- Tabs & Export -->
@@ -198,25 +152,21 @@
         </div>
     </div>
 
-    <!-- ALL PHARMACIES - captures EVERY service point with 'pharmacy' -->
+    <!-- ALL PHARMACIES -->
     <div id="standAloneView" style="display: none;">
         <div class="card card-glass p-3 mb-3">
             <h4 class="fw-bold text-center"><i class="bi bi-capsule"></i> All Pharmacies <span class="badge bg-info text-dark ms-2">auto‑detected</span></h4>
-            <p class="text-center text-muted small">Every service point containing <strong>"pharmacy"</strong> is captured here, including main branches.</p>
         </div>
         <div class="row g-4" id="pharmacyGrid"></div>
     </div>
 
-    <!-- DAILY SUMMARIES - ALL BRANCHES INCLUDING ALL PHARMACIES -->
+    <!-- DAILY SUMMARIES -->
     <div id="dailyView" style="display: none;">
         <div class="card card-glass p-3 mb-3">
-            <h4 class="fw-bold"><i class="bi bi-calendar3"></i> Daily Sales Summary (all branches)</h4>
-            <p class="text-muted small">Each branch: Sales, Customers, and columns for each payment method</p>
+            <h4 class="fw-bold"><i class="bi bi-calendar3"></i> Daily Sales Summary</h4>
             <div id="dailySummaryContainer" class="table-wrap"></div>
         </div>
     </div>
-
-   
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
@@ -224,17 +174,13 @@
     // ---------- GLOBALS ----------
     let salesData = [], bcData = [], salesLoaded = false, bcLoaded = false;
     let syokimauProcessed = null, ruiruProcessed = null, kataniProcessed = null;
-    let syokimauManualAmounts = [], ruiruManualAmounts = [], kataniManualAmounts = [];
     let currentTab = 'main';
     let globalDateRange = { min: null, max: null };
     let dailySummaryData = [];
 
     // ---------- WHOLESALE RULE ----------
-    // Any sales line whose Qty column is 6 or more automatically qualifies as WHOLESALE,
-    // PROVIDED it does not belong to Pharmacy, Liquor or Deli/Bakery.
     const WHOLESALE_QTY_THRESHOLD = 6;
 
-    // Helper: get column value by trying multiple names
     function getColumnValue(row, possibleNames) {
         for(let name of possibleNames) {
             if(row[name] !== undefined && row[name] !== null && row[name] !== '') return row[name];
@@ -242,21 +188,18 @@
         return '';
     }
 
-    // Helper: read the Qty column safely
     function getQtyValue(row) {
         const raw = getColumnValue(row, ['Qty', 'qty', 'QTY', 'Quantity', 'quantity', 'QUANTITY', 'Qty Sold', 'qty_sold']);
         const n = parseFloat(String(raw).replace(/,/g, ''));
         return isNaN(n) ? 0 : n;
     }
 
-    // Helper: the wholesale bucket name used by each branch
     function getWholesaleSectionName(location) {
         if(location === 'syokimau') return 'WHOLESALE';
-        if(location === 'ruiru') return 'WHOLESALE & RETAIL';   // Ruiru = combined bucket
-        return 'WHOLESALE/RETAIL'; // katani
+        if(location === 'ruiru') return 'WHOLESALE & RETAIL';
+        return 'WHOLESALE/RETAIL';
     }
 
-    // Helper: the default bucket when nothing else matches
     function getDefaultSectionName(location) {
         return location === 'syokimau' ? 'RETAIL' : getWholesaleSectionName(location);
     }
@@ -342,7 +285,6 @@
         return dStr;
     }
 
-    // BC Map
     function buildBCMap() { 
         const map = new Map(); 
         for(const row of bcData) { 
@@ -353,35 +295,14 @@
         return map; 
     }
 
-    // ---------- FLEXIBLE PHARMACY: any service point containing 'pharmacy' ----------
     function isPharmacy(sp) { 
         const s = (sp || "").toLowerCase().trim(); 
         return s.includes('pharmacy') || s.includes('pharm'); 
     }
 
-    // Main branch filters
     function isSyokimau(sp) { const s = (sp || "").trim(); return s === "Syokimau Retail" || s === "Syokimau Deli" || s === "Syokimau Pharmacy" || s.toLowerCase().includes("syokimau"); }
     function isRuiru(sp) { const s = (sp || "").toLowerCase().trim(); return s.includes("ruiru"); }
     function isKatani(sp) { const s = (sp || "").toLowerCase().trim(); return s === "katani retail" || s.includes("katani retail"); }
-
-    function convertManualAmountsToRows(location, amountList) {
-        if(!amountList.length) return [];
-        return amountList.map((amount, idx) => {
-            let uniqueId = `MANUAL_${location}_${Date.now()}_${idx}_${Math.random().toString(36).substr(2, 4)}`;
-            let productName = `Manual Invoice ${idx+1}`;
-            let sp = location === 'syokimau' ? "Syokimau Retail" : location === 'ruiru' ? "Ruiru Retail" : "Katani Retail";
-            return {
-                'Sale ID': uniqueId, 'Product': productName, 'Customer': 'Manual',
-                'Service Point': sp, 'Station': '', 'Invoice No': uniqueId, 'Qty': 1,
-                'Cashier': 'manual', 'Status': 'Paid', 'Price': parseFloat(amount) || 0,
-                'Amount': parseFloat(amount) || 0, 
-                'Date': new Date().toISOString().split('T')[0],
-                'Category': 'Retail', 'Parent Category': '', 'Tax Category': '',
-                'Payment Mode': 'cash', 'Unit Cost': 0, 'Actual Cost': 0,
-                'Invoice_No': uniqueId, 'service point': sp, 'is_manual_entry': true, 'manual_amount_only': true
-            };
-        });
-    }
 
     function isDeliBakeryProduct(productName) {
         const prod = (productName || "").toLowerCase().trim();
@@ -391,7 +312,6 @@
         return true;
     }
 
-    // ---------- CORE CATEGORISATION ----------
     function categorizeRows(rows, bcMap, location) {
         const wholesaleSection = getWholesaleSectionName(location);
         const defaultSection   = getDefaultSectionName(location);
@@ -401,17 +321,14 @@
             const amt     = parseFloat(getColumnValue(row, ['Amount', 'amount']) || 0) || 0;
             const spRaw   = (getColumnValue(row, ['Service Point', 'service_point', 'service point']) || "").toString().toLowerCase().trim();
             const invNo   = (getColumnValue(row, ['Invoice No', 'Invoice_No', 'invoice_no']) || "").toString().trim() || `inv_${Math.random()}`;
-            const isManual = row.is_manual_entry === true;
             const productNameRaw = getColumnValue(row, ['Product', 'product']) || "Generic";
             const qty = getQtyValue(row);
 
-            // -------- classification flags (order of priority matters) --------
             const pharmFlag  = isPharmacy(spRaw);
             const liquorSP   = spRaw.includes('liquor');
             const deliFlag   = isDeliBakeryProduct(prod);
             const bulkFlag   = prod.includes('box') || prod.includes('outer') || prod.includes('bale');
 
-            // BC (Inventory Posting Group1) lookup – used only for LIQUOR detection
             let bcGroup = null;
             if(prod) {
                 for(let [desc, grp] of bcMap.entries()) {
@@ -421,34 +338,26 @@
             }
             const liquorBC = !!(bcGroup && String(bcGroup).toUpperCase().trim() === "WINES & SPIRITS");
 
-            // -------- NEW WHOLESALE RULE --------
-            // Qty >= 6 on the line  =>  wholesale, unless pharmacy / liquor / deli-bakery
             const wholesaleQty = qty >= WHOLESALE_QTY_THRESHOLD;
 
             let section;
-            if(isManual) {
-                section = defaultSection;
-            } else if(pharmFlag) {
+            if(pharmFlag) {
                 section = "PHARMACY";
             } else if(liquorSP || liquorBC) {
                 section = "LIQUOR";
             } else if(location === 'katani') {
-                // Katani keeps its single WHOLESALE/RETAIL bucket (unchanged behaviour)
                 section = wholesaleSection;
             } else if(deliFlag) {
                 section = "DELI/BAKERY";
             } else if(wholesaleQty || bulkFlag) {
-                section = wholesaleSection;      // <-- qty >= 6 lands here
+                section = wholesaleSection;
             } else {
                 section = defaultSection;
             }
 
-            // -------- final guards (highest priority, unchanged) --------
             if(pharmFlag) section = "PHARMACY";
             if(liquorSP)  section = "LIQUOR";
 
-            // -------- RUIRU MERGE GUARD --------
-            // Ruiru must never split Retail vs Wholesale — always one combined bucket.
             if(location === 'ruiru' && (section === 'WHOLESALE' || section === 'RETAIL' || section === 'WHOLESALE/RETAIL')) {
                 section = 'WHOLESALE & RETAIL';
             }
@@ -506,53 +415,41 @@
         return { sections: sectionsResult, overallTotal: globalTotal, totalUniqueCustomers: globalInvoices.size, globalTopProducts };
     }
 
-    function getFilteredRowsWithManual(location, bcMap) {
+    function getFilteredRows(location) {
         let baseRows = salesData || [];
-        let filtered = [];
         if(location === 'syokimau') {
-            filtered = baseRows.filter(r => isSyokimau(getColumnValue(r, ['Service Point', 'service_point', 'service point'])));
+            return baseRows.filter(r => isSyokimau(getColumnValue(r, ['Service Point', 'service_point', 'service point'])));
         } else if(location === 'ruiru') {
-            filtered = baseRows.filter(r => isRuiru(getColumnValue(r, ['Service Point', 'service_point', 'service point'])));
+            return baseRows.filter(r => isRuiru(getColumnValue(r, ['Service Point', 'service_point', 'service point'])));
         } else if(location === 'katani') {
-            filtered = baseRows.filter(r => {
+            return baseRows.filter(r => {
                 let sp = getColumnValue(r, ['Service Point', 'service_point', 'service point']);
                 return sp && sp.trim().toLowerCase() === 'katani retail';
             });
         }
-        let manualRows = [];
-        if(location === 'syokimau') manualRows = convertManualAmountsToRows('syokimau', syokimauManualAmounts);
-        else if(location === 'ruiru') manualRows = convertManualAmountsToRows('ruiru', ruiruManualAmounts);
-        else if(location === 'katani') manualRows = convertManualAmountsToRows('katani', kataniManualAmounts);
-        return [...filtered, ...manualRows];
+        return [];
     }
 
     function processLocation(location) {
         if(!bcLoaded) return null;
         const bcMap = buildBCMap();
-        const rows = getFilteredRowsWithManual(location, bcMap);
+        const rows = getFilteredRows(location);
         if(rows.length === 0) return { sections: [], overallTotal: 0, totalUniqueCustomers: 0, globalTopProducts: [], rawCategorized: [] };
         const categorized = categorizeRows(rows, bcMap, location);
         const { sections, overallTotal, totalUniqueCustomers, globalTopProducts } = computeKPIsWithTopProducts(categorized);
         return { sections, overallTotal, totalUniqueCustomers, globalTopProducts, rawCategorized: categorized };
     }
 
-    // ----- DAILY SUMMARY: includes ALL branches + ALL pharmacies -----
     function buildDailySummary() {
         if(!salesData.length) return [];
-        const manualAll = [...convertManualAmountsToRows('syokimau', syokimauManualAmounts),
-                          ...convertManualAmountsToRows('ruiru', ruiruManualAmounts),
-                          ...convertManualAmountsToRows('katani', kataniManualAmounts)];
-        const combined = [...salesData, ...manualAll];
         
-        const branchMap = new Map(); // branch -> dateMap
-        for(let row of combined) {
+        const branchMap = new Map();
+        for(let row of salesData) {
             let sp = getColumnValue(row, ['Service Point', 'service_point', 'service point']) || '';
             let branch = 'other';
-            // First check main branches
             if(isSyokimau(sp)) branch = 'syokimau';
             else if(isRuiru(sp)) branch = 'ruiru';
             else if(isKatani(sp)) branch = 'katani';
-            // Any pharmacy (including main branches that have 'pharmacy' in name)
             else if(isPharmacy(sp)) {
                 branch = sp.trim().toLowerCase().replace(/\s+/g, '_');
             }
@@ -591,7 +488,6 @@
         return result;
     }
 
-    // RENDER DAILY SUMMARY: all branches, payment methods as separate columns
     function renderDailySummary() {
         const container = document.getElementById('dailySummaryContainer');
         dailySummaryData = buildDailySummary();
@@ -666,7 +562,6 @@
         container.innerHTML = html;
     }
 
-    // Export daily summary to Excel (includes all branches)
     function exportDailyToExcel() {
         if(!dailySummaryData.length) { alert('No daily data to export.'); return; }
         const dateMap = new Map();
@@ -725,18 +620,16 @@
         XLSX.writeFile(wb, `daily_summary_${new Date().toISOString().slice(0,10)}.xlsx`);
     }
 
-    // ------ RENDER MAIN DASHBOARD ------
     function renderLocationDashboard(containerId, locationName, result) {
         const container = document.getElementById(containerId);
         if(!container) return;
         if(!result || result.sections.length === 0) { 
-            container.innerHTML = `<div class="alert alert-warning">No ${locationName} data. Add manual amounts or upload file.</div>`; 
+            container.innerHTML = `<div class="alert alert-warning">No ${locationName} data. Upload sales file to see insights.</div>`; 
             return; 
         }
         const { sections, overallTotal, totalUniqueCustomers } = result;
         const dateRangeStr = formatDateRange(globalDateRange);
 
-        // ---------------- KATANI (single bucket card) ----------------
         if(locationName === 'Katani') {
             const topProducts = result.globalTopProducts || [];
             const transactions = sections.reduce((sum, s) => sum + (s.transactions || 0), 0);
@@ -764,7 +657,6 @@
             return;
         }
 
-        // ---------------- SYOKIMAU / RUIRU ----------------
         const colorMap = {
             "WHOLESALE":"#2c5f2d",
             "WHOLESALE & RETAIL":"#2c5f2d",
@@ -775,18 +667,16 @@
             "RETAIL":"#6c757d"
         };
 
-        // Ruiru never shows separate WHOLESALE / RETAIL — only the combined bucket.
         const preferredOrder = locationName === "Syokimau"
             ? ["WHOLESALE","PHARMACY","LIQUOR","DELI/BAKERY","RETAIL"]
             : ["PHARMACY","LIQUOR","DELI/BAKERY","WHOLESALE & RETAIL"];
 
         const sectionMap = new Map(sections.map(s => [s.section, s]));
 
-        // Only render cards that actually have data (no empty duplicate cards).
         const ordered = preferredOrder.filter(s => sectionMap.has(s));
         const extras = sections
             .map(s => s.section)
-            .filter(s => !preferredOrder.includes(s) && !sectionMap.get(s)?.__merged)
+            .filter(s => !preferredOrder.includes(s))
             .sort();
         ordered.push(...extras);
 
@@ -837,7 +727,6 @@
         container.innerHTML = html;
     }
 
-    // ----- ALL PHARMACIES: captures EVERY service point with 'pharmacy' -----
     function renderStandAlonePharmacies() {
         const grid = document.getElementById('pharmacyGrid');
         if(!bcLoaded || !salesData.length) { 
@@ -845,21 +734,15 @@
             return; 
         }
         
-        // Get ALL rows that are pharmacy (including main branches)
         const allRows = salesData.filter(r => isPharmacy(getColumnValue(r, ['Service Point', 'service_point', 'service point'])));
-        const manualAll = [...convertManualAmountsToRows('syokimau', syokimauManualAmounts), 
-                          ...convertManualAmountsToRows('ruiru', ruiruManualAmounts), 
-                          ...convertManualAmountsToRows('katani', kataniManualAmounts)];
-        const manualPharmacy = manualAll.filter(r => isPharmacy(r['service point'] || ''));
-        const combined = [...allRows, ...manualPharmacy];
         
-        if(combined.length === 0) {
+        if(allRows.length === 0) {
             grid.innerHTML = `<div class="alert alert-warning">No pharmacy data found. Any service point containing "pharmacy" will appear here.</div>`;
             return;
         }
         
         const pharmacyMap = new Map();
-        for(let row of combined) {
+        for(let row of allRows) {
             let sp = getColumnValue(row, ['Service Point', 'service_point', 'service point']) || "Unknown Pharmacy";
             let amt = parseFloat(getColumnValue(row, ['Amount', 'amount']) || 0) || 0;
             let inv = getColumnValue(row, ['Invoice No', 'Invoice_No', 'invoice_no']) || `inv_${Math.random()}`;
@@ -871,13 +754,11 @@
             stats.products.set(prod, (stats.products.get(prod) || 0) + amt);
         }
         
-        // Include ALL pharmacies - no filtering out main branches
         let filtered = [];
         for(let [name, stats] of pharmacyMap.entries()) {
             filtered.push({ name, ...stats });
         }
         
-        // Sort by name for consistent display
         filtered.sort((a, b) => a.name.localeCompare(b.name));
         
         let dateRangeStr = formatDateRange(globalDateRange);
@@ -888,7 +769,6 @@
                 .sort((a,b) => b.amount - a.amount).slice(0,3);
             const basketValue = pharm.invoices.size > 0 ? pharm.totalSales / pharm.invoices.size : 0;
             
-            // Check if this is one of the main branches
             const isMainBranch = isSyokimau(pharm.name) || isRuiru(pharm.name) || isKatani(pharm.name);
             const mainBadge = isMainBranch ? '<span class="pharmacy-badge-main">Main</span>' : '';
             
@@ -910,9 +790,8 @@
 
     function processAll() {
         if(!bcLoaded) { alert("Please upload BC Master file first."); return; }
-        if(salesData.length) {
-            globalDateRange = extractDateRange(salesData);
-        }
+        if(!salesData.length) { alert("Please upload Sales file first."); return; }
+        globalDateRange = extractDateRange(salesData);
         syokimauProcessed = processLocation('syokimau');
         ruiruProcessed = processLocation('ruiru');
         kataniProcessed = processLocation('katani');
@@ -921,45 +800,6 @@
         renderLocationDashboard('kataniContainer', 'Katani', kataniProcessed);
         if(currentTab === 'standalone') renderStandAlonePharmacies();
         if(currentTab === 'daily') renderDailySummary();
-    }
-
-    // Manual UI
-    function updateManualListsUI() {
-        ['syoManualList','ruiruManualList','kataniManualList'].forEach(id => {
-            let div = document.getElementById(id);
-            if(!div) return;
-            let arr = id === 'syoManualList' ? syokimauManualAmounts : id === 'ruiruManualList' ? ruiruManualAmounts : kataniManualAmounts;
-            let loc = id === 'syoManualList' ? 'syokimau' : id === 'ruiruManualList' ? 'ruiru' : 'katani';
-            if(arr.length === 0) div.innerHTML = '<span class="text-muted fst-italic">No entries</span>';
-            else {
-                div.innerHTML = arr.map((amt, idx) => `<div class="manual-amount-card d-flex justify-content-between align-items-center p-1"><span>${formatCurrency(amt)}</span><i class="bi bi-trash3 remove-manual" data-location="${loc}" data-idx="${idx}"></i></div>`).join('');
-            }
-        });
-        document.querySelectorAll('.remove-manual').forEach(el => {
-            el.removeEventListener('click', handleManualDelete);
-            el.addEventListener('click', handleManualDelete);
-        });
-    }
-    function handleManualDelete(e) {
-        const target = e.currentTarget;
-        const location = target.getAttribute('data-location');
-        const idx = parseInt(target.getAttribute('data-idx'));
-        if(location === 'syokimau') syokimauManualAmounts.splice(idx, 1);
-        else if(location === 'ruiru') ruiruManualAmounts.splice(idx, 1);
-        else if(location === 'katani') kataniManualAmounts.splice(idx, 1);
-        updateManualListsUI();
-        if(bcLoaded) processAll();
-    }
-    function addManualAmount(location) {
-        let input = location === 'syokimau' ? document.getElementById('syoManualAmount') : location === 'ruiru' ? document.getElementById('ruiruManualAmount') : document.getElementById('kataniManualAmount');
-        let amt = parseFloat(input.value);
-        if(isNaN(amt) || amt <= 0) { alert("Enter a valid positive amount."); return; }
-        if(location === 'syokimau') syokimauManualAmounts.push(amt);
-        else if(location === 'ruiru') ruiruManualAmounts.push(amt);
-        else kataniManualAmounts.push(amt);
-        input.value = '';
-        updateManualListsUI();
-        if(bcLoaded) processAll();
     }
 
     function switchTab(tab) {
@@ -977,7 +817,6 @@
 
     function resetAll() {
         salesData = []; bcData = []; salesLoaded = false; bcLoaded = false;
-        syokimauManualAmounts = []; ruiruManualAmounts = []; kataniManualAmounts = [];
         syokimauProcessed = null; ruiruProcessed = null; kataniProcessed = null;
         globalDateRange = { min: null, max: null };
         dailySummaryData = [];
@@ -986,11 +825,9 @@
         ['syokimauContainer','ruiruContainer','kataniContainer'].forEach(id => document.getElementById(id).innerHTML = '<div class="alert alert-secondary">Upload & analyze</div>');
         document.getElementById('pharmacyGrid').innerHTML = '';
         document.getElementById('dailySummaryContainer').innerHTML = '';
-        updateManualListsUI();
         switchTab('main');
     }
 
-    // File handlers
     function setupUploadZone(zone, fileInput, onLoadCallback, fileNameSpan) {
         zone.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => { const f = e.target.files[0]; if(f){ fileNameSpan.innerText = `📄 ${f.name}`; parseExcel(f, onLoadCallback); } });
@@ -1000,21 +837,16 @@
     }
     function parseExcel(file, callback) { const reader = new FileReader(); reader.onload = (e) => { const data = new Uint8Array(e.target.result); const wb = XLSX.read(data, { type: 'array' }); const sheet = wb.Sheets[wb.SheetNames[0]]; const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }); callback(rows); }; reader.readAsArrayBuffer(file); }
     function onSalesLoaded(rows) { salesData = rows; salesLoaded = true; if(bcLoaded) processAll(); }
-    function onBCLoaded(rows) { bcData = rows; bcLoaded = true; processAll(); }
+    function onBCLoaded(rows) { bcData = rows; bcLoaded = true; if(salesLoaded) processAll(); }
 
-    // Init
     setupUploadZone(document.getElementById('salesUploadZone'), document.getElementById('salesFileInput'), onSalesLoaded, document.getElementById('salesFileName'));
     setupUploadZone(document.getElementById('bcUploadZone'), document.getElementById('bcFileInput'), onBCLoaded, document.getElementById('bcFileName'));
     document.getElementById('processBothBtn').addEventListener('click', processAll);
     document.getElementById('resetDataBtn').addEventListener('click', resetAll);
     document.getElementById('exportDailyBtn').addEventListener('click', exportDailyToExcel);
-    document.getElementById('addSyoManualBtn').addEventListener('click', () => addManualAmount('syokimau'));
-    document.getElementById('addRuiruManualBtn').addEventListener('click', () => addManualAmount('ruiru'));
-    document.getElementById('addKataniManualBtn').addEventListener('click', () => addManualAmount('katani'));
     document.getElementById('tabMain').addEventListener('click', () => switchTab('main'));
     document.getElementById('tabStandAlone').addEventListener('click', () => switchTab('standalone'));
     document.getElementById('tabDaily').addEventListener('click', () => switchTab('daily'));
-    updateManualListsUI();
     switchTab('main');
 </script>
 </body>
